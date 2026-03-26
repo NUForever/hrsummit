@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRsummit — Data Deletion</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:700px;margin:40px auto;padding:0 20px;color:#333;line-height:1.7}
+h1{font-size:24px;margin-bottom:4px}
+h2{font-size:18px;margin-top:28px;color:#111}
+.date{font-size:14px;color:#888;margin-bottom:30px}
+.step{background:#f5f5f5;border-radius:8px;padding:16px;margin:12px 0}
+.step-num{font-weight:700;color:#111}
+table{width:100%;border-collapse:collapse;margin:12px 0}
+th,td{text-align:left;padding:8px 12px;border:1px solid #ddd;font-size:14px}
+th{background:#f5f5f5}
+</style>
+</head>
+<body>
+
+<h1>HRsummit — Data Deletion</h1>
+<div class="date">Last updated: March 26, 2026</div>
+
+<h2>How Your Data is Stored</h2>
+<p>HRsummit stores all data <strong>locally on your device only</strong>. No health or training data is sent to any external server. Data is stored in your device's IndexedDB and localStorage.</p>
+
+<h2>How to Delete Your Data</h2>
+
+<div class="step">
+<p><span class="step-num">Step 1:</span> Open your device Settings</p>
+</div>
+<div class="step">
+<p><span class="step-num">Step 2:</span> Go to <strong>Apps</strong> > <strong>HRsummit</strong></p>
+</div>
+<div class="step">
+<p><span class="step-num">Step 3:</span> Tap <strong>"Clear Data"</strong> to delete all app data, or <strong>"Uninstall"</strong> to remove the app and all its data completely</p>
+</div>
+
+<p>Both options will permanently delete all data stored by HRsummit on your device.</p>
+
+<h2>What Data is Deleted</h2>
+<table>
+<tr><th>Data Type</th><th>Deleted?</th><th>Retention</th></tr>
+<tr><td>Heart rate session data</td><td>Yes, completely</td><td>None — deleted immediately</td></tr>
+<tr><td>R-R interval data</td><td>Yes, completely</td><td>None — deleted immediately</td></tr>
+<tr><td>Session history</td><td>Yes, completely</td><td>None — deleted immediately</td></tr>
+<tr><td>App settings (max HR, resting HR)</td><td>Yes, completely</td><td>None — deleted immediately</td></tr>
+<tr><td>Subscription status</td><td>Managed by Google Play</td><td>See <a href="https://support.google.com/googleplay/answer/7018481">Google Play subscriptions</a></td></tr>
+</table>
+
+<h2>Subscription Data</h2>
+<p>If you have an active premium subscription, your subscription is managed by Google Play and RevenueCat. Deleting app data or uninstalling does not cancel your subscription. To cancel:</p>
+<div class="step">
+<p>Go to <strong>Google Play Store</strong> > <strong>Profile</strong> > <strong>Payments & subscriptions</strong> > <strong>Subscriptions</strong> > <strong>HRsummit</strong> > <strong>Cancel</strong></p>
+</div>
+
+<h2>Contact</h2>
+<p>For data deletion requests or questions: <strong>hrsummit@proton.me</strong></p>
+
+</body>
+</html>
