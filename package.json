@@ -1,0 +1,27 @@
+{
+  "name": "hrsummit",
+  "version": "2.0.0",
+  "description": "Monitor cardíaco BLE para entrenamiento de alta montaña",
+  "main": "index.html",
+  "scripts": {
+    "build": "cp index.html www/ && cp manifest.json www/",
+    "cap:sync": "npx cap sync",
+    "cap:open": "npx cap open android",
+    "cap:run": "npx cap run android"
+  },
+  "keywords": [
+    "heart-rate",
+    "ble",
+    "capacitor",
+    "mountaineering"
+  ],
+  "author": "NUForever",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor-community/bluetooth-le": "^8.1.3",
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/cli": "^7.6.1",
+    "@capacitor/core": "^8.3.0",
+    "@capawesome/capacitor-background-task": "^8.0.2"
+  }
+}

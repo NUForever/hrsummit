@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>HRsummit</title>
+<link rel="manifest" href="manifest.json">
+<script src="https://unpkg.com/@nicehash/capacitor-background-mode@2.0.0/dist/plugin.js" defer></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#000;--fg:#fff;--fg2:#aaa;--fg3:#555;--fg4:#333;
+--accent:#fff;--border:#222;
+--z1:#6ea8fe;--z2:#75e6a0;--z3:#ffd166;--z4:#ff6b6b;--z5:#c084fc;
+}
+html,body{background:var(--bg);color:var(--fg);font-family:'IBM Plex Mono',monospace;
+-webkit-font-smoothing:antialiased;overflow-x:hidden;touch-action:pan-y}
+::-webkit-scrollbar{display:none}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+#app{max-width:520px;margin:0 auto;padding:10px 12px;min-height:100vh;position:relative}
+
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.header-title{font-size:19px;font-weight:700;letter-spacing:-0.5px}
+.header-sub{font-size:8px;letter-spacing:3px;color:var(--fg3);text-transform:uppercase}
+.status-row{display:flex;align-items:center;gap:5px}
+.status-dot{width:7px;height:7px;border-radius:50%}
+.status-text{font-size:9px;color:var(--fg3)}
+
+.tabs{display:flex;gap:2px;background:var(--fg4);border-radius:8px;padding:2px;margin-bottom:10px}
+.tab{flex:1;padding:7px 0;border:none;border-radius:6px;font-size:9px;letter-spacing:1.5px;
+text-transform:uppercase;background:transparent;color:var(--fg3);transition:all .2s}
+.tab.active{background:var(--fg);color:var(--bg);font-weight:600}
+
+.card{background:#0a0a0a;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+
+/* HR display */
+.hr-card{display:flex;align-items:center;gap:10px;padding:14px;border:1px solid var(--border);
+border-radius:12px;margin-bottom:8px;position:relative;overflow:hidden}
+.hr-heart{font-size:22px;animation:pulse 1s ease-in-out infinite}
+.hr-value{font-size:54px;font-weight:700;letter-spacing:-3px;line-height:1;color:var(--fg)}
+.hr-unit{font-size:11px;color:var(--fg3);margin-left:3px}
+.hr-right{margin-left:auto;text-align:right}
+.zone-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:600;
+letter-spacing:1px;border:1px solid var(--fg3)}
+
+/* Stats */
+.stats-row{display:grid;gap:6px;margin-bottom:8px}
+.stats-2{grid-template-columns:1fr 1fr}
+.stats-3{grid-template-columns:1fr 1fr 1fr}
+.stats-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.stat{background:#0a0a0a;border:1px solid var(--border);border-radius:8px;padding:7px;text-align:center}
+.stat-label{font-size:7px;color:var(--fg3);letter-spacing:1.5px}
+.stat-value{font-size:19px;font-weight:700;color:var(--fg);margin-top:1px}
+.stat-unit{font-size:7px;color:var(--fg3)}
+
+/* Chart */
+.chart-label{font-size:8px;color:var(--fg3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.chart-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.chart-zoom{display:flex;gap:4px;align-items:center}
+.chart-btn{background:#111;border:1px solid var(--border);border-radius:5px;padding:2px 9px;
+color:var(--fg2);font-size:12px;line-height:1.2}
+.chart-window{font-size:8px;color:var(--fg3);letter-spacing:1px}
+.live-dot{font-size:8px;color:#75e6a0;letter-spacing:1px}
+.live-btn{font-size:9px;color:#75e6a0;background:rgba(117,230,160,0.1);border:1px solid rgba(117,230,160,0.3);
+border-radius:5px;padding:2px 8px}
+.tooltip{position:absolute;top:4px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.95);
+border:1px solid var(--fg3);border-radius:6px;padding:3px 8px;display:flex;gap:8px;align-items:center;z-index:10;
+font-size:10px;white-space:nowrap}
+
+/* Zones */
+.zone-bar{display:flex;height:10px;border-radius:4px;overflow:hidden;background:#111;margin-bottom:4px}
+.zone-labels{display:flex;justify-content:space-between}
+.zone-label-name{font-size:7px;color:var(--fg3)}
+.zone-label-pct{font-size:9px;font-weight:600;color:var(--fg)}
+.zone-row{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);
+border-radius:10px;margin-bottom:6px;border-left:3px solid}
+.zone-row-name{font-size:12px;font-weight:600;color:var(--fg)}
+.zone-row-range{font-size:9px;color:var(--fg3)}
+.zone-row-bar{height:5px;background:#111;border-radius:3px;overflow:hidden;margin:5px 0 3px}
+.zone-row-fill{height:100%;border-radius:3px;transition:width .5s}
+.zone-row-footer{display:flex;justify-content:space-between}
+.zone-row-text{font-size:9px;color:var(--fg3)}
+
+/* HRV */
+.hrv-big{text-align:center;padding:18px;border:1px solid var(--border);border-radius:14px;margin-bottom:8px}
+.hrv-label{font-size:9px;color:var(--fg3);letter-spacing:2px}
+.hrv-value{font-size:52px;font-weight:700;color:var(--fg);letter-spacing:-2px;margin-top:2px}
+.hrv-unit{font-size:13px;color:var(--fg3)}
+.hrv-status{font-size:10px;color:var(--fg3);margin-top:4px}
+
+/* Rendimiento */
+.metric-card{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px}
+.metric-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.metric-name{font-size:9px;color:var(--fg3);letter-spacing:1.5px;text-transform:uppercase}
+.metric-main{display:flex;align-items:baseline;gap:4px}
+.metric-big{font-size:36px;font-weight:700;color:var(--fg);letter-spacing:-1px;line-height:1}
+.metric-unit{font-size:11px;color:var(--fg3)}
+.metric-desc{font-size:9px;color:var(--fg3);line-height:1.4;margin-top:4px}
+.metric-bar{height:6px;background:#111;border-radius:3px;overflow:hidden;margin-top:6px}
+.metric-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.metric-indicator{display:inline-block;padding:2px 6px;border-radius:6px;font-size:8px;font-weight:600;letter-spacing:0.5px}
+
+/* Config */
+.config-group{margin-bottom:14px}
+.config-label{font-size:9px;color:var(--fg3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.config-input-row{display:flex;align-items:center;gap:8px}
+.config-input{background:#111;border:1px solid var(--border);border-radius:8px;padding:10px 14px;
+color:var(--fg);font-family:inherit;font-size:18px;font-weight:700;width:100px;text-align:center}
+.config-input:focus{outline:none;border-color:var(--fg3)}
+.config-select{background:#111;border:1px solid var(--border);border-radius:8px;padding:10px 14px;
+color:var(--fg);font-family:inherit;font-size:14px;font-weight:600}
+.config-hint{font-size:9px;color:var(--fg3);margin-top:4px;line-height:1.4}
+.config-zones{margin-top:10px}
+.config-zone-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.config-zone-dot{width:10px;height:10px;border-radius:50%}
+.config-zone-name{font-size:11px;color:var(--fg);flex:1}
+.config-zone-range{font-size:10px;color:var(--fg3);font-weight:500}
+
+/* Altitude note */
+.note{background:#0a0a0a;border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+margin-bottom:8px;font-size:10px;color:var(--fg3);line-height:1.5}
+.note strong{color:var(--fg)}
+
+/* Buttons */
+.btn-connect{width:100%;padding:14px;background:var(--fg);color:var(--bg);border:none;border-radius:10px;
+font-size:13px;font-weight:700;letter-spacing:0.5px}
+.btn-stop{width:100%;padding:12px;background:transparent;border:1px solid var(--fg3);border-radius:10px;
+color:var(--fg);font-size:11px;font-weight:600;letter-spacing:0.5px;margin-top:6px}
+.btn-export{flex:1;padding:12px;background:#0a0a0a;border:1px solid var(--border);border-radius:10px;
+color:var(--fg2);font-size:11px;font-weight:500;text-align:center}
+.action-row{display:flex;gap:6px;margin-top:6px}
+
+/* Center screen */
+.centered{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:75vh;gap:16px}
+.centered-heart{font-size:48px;opacity:0.15;color:var(--fg)}
+.centered-title{font-size:24px;font-weight:700;color:var(--fg)}
+.centered-sub{font-size:11px;color:var(--fg3);text-align:center;line-height:1.5}
+.centered-spec{font-size:9px;color:var(--fg4);text-align:center;line-height:1.6;margin-top:4px}
+.error-box{background:#1a0000;border:1px solid #331111;border-radius:8px;padding:8px 12px;
+font-size:10px;color:#ff6b6b;text-align:center;width:100%}
+.wakelock-badge{font-size:8px;color:#75e6a0;background:rgba(117,230,160,0.1);border:1px solid rgba(117,230,160,0.2);
+border-radius:4px;padding:1px 5px;margin-left:6px}
+
+@keyframes pulse{0%,100%{transform:scale(1)}15%{transform:scale(1.3)}30%{transform:scale(1)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.blink{animation:blink 1s infinite}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script type="module">
+// ═══════════════════════════════════════════════════════
+// KARDIOMAZOV v2.0 — Garmin HRM-600 BLE Heart Rate Monitor
+// Capacitor Native · BLE · High Altitude Training
+// ═══════════════════════════════════════════════════════
+
+// ── Platform detection & Capacitor BLE import ──
+const isCapacitor = typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform();
+let BleClient = null;
+
+if(isCapacitor) {
+  try {
+    const mod = await import('https://unpkg.com/@capacitor-community/bluetooth-le@6.0.1/dist/esm/index.js');
+    BleClient = mod.BleClient;
+    await BleClient.initialize({ androidNeverForLocation: true });
+  } catch(e) {
+    console.warn('Capacitor BLE init failed, falling back to Web Bluetooth', e);
+  }
+}
+
+
+// ── State ──
+const S = {
+  status: 'idle',
+  errorMsg: null,
+  tab: 'live',
+  hr: 0,
+  tsData: [],       // {t, hr} — unlimited during session, persisted to IndexedDB
+  rrAll: [],        // last 300 RR intervals
+  rrTsData: [],     // {t, hr(=rr)}
+  hrMax: 0, hrMin: 999, hrSum: 0, hrCount: 0,
+  elapsed: 0,
+  zoneTimes: {},
+  rmssd: 0, sdnn: 0, pnn50: 0,
+  maxHR: 190,
+  restHR: 55,
+  sex: 'm',
+  recording: false,
+  startTime: null,
+  device: null,
+  char: null,
+  wakeLock: null,
+
+  // Performance metrics
+  trimp: 0,
+  lastSampleTime: null,
+  stressIndex: 0,
+  hrDrift: 0,
+  hrSumFirstHalf: 0,
+  hrCountFirstHalf: 0,
+  hrSumSecondHalf: 0,
+  hrCountSecondHalf: 0,
+  epoc: 0,
+  trainingEffect: 0,
+  lastEpocTime: null,
+  dfaAlpha1: null,
+  lfPower: 0,
+  hfPower: 0,
+  lfHfRatio: 0,
+  respiratoryRate: 0,
+  rmssdTrend: [],
+  hrvSlope: 0,
+  lastTrendTime: 0,
+  lastFreqCalcTime: 0,
+};
+
+// ── Zones (calculated from maxHR) ──
+function getZones() {
+  const m = S.maxHR;
+  return [
+    { name:'Reposo',      min:0,              max:Math.round(m*0.50), color:'var(--z1)' },
+    { name:'Quema grasa', min:Math.round(m*0.50), max:Math.round(m*0.60), color:'var(--z2)' },
+    { name:'Aeróbico',    min:Math.round(m*0.60), max:Math.round(m*0.70), color:'var(--z3)' },
+    { name:'Umbral',      min:Math.round(m*0.70), max:Math.round(m*0.80), color:'var(--z4)' },
+    { name:'VO₂ Máx',    min:Math.round(m*0.80), max:m+1,              color:'var(--z5)' },
+  ];
+}
+function getZone(hr) {
+  const zones = getZones();
+  return zones.find(z => hr >= z.min && hr < z.max) || zones[zones.length-1];
+}
+
+// ── HRV calcs ──
+function calcRMSSD(rr, w=20) {
+  if(rr.length<2)return 0; const r=rr.slice(-w); let s=0;
+  for(let i=1;i<r.length;i++){const d=r[i]-r[i-1];s+=d*d;} return Math.sqrt(s/(r.length-1));
+}
+function calcSDNN(rr, w=30) {
+  if(rr.length<2)return 0; const r=rr.slice(-w);
+  const m=r.reduce((a,b)=>a+b,0)/r.length;
+  return Math.sqrt(r.reduce((s,v)=>s+Math.pow(v-m,2),0)/r.length);
+}
+function calcPNN50(rr, w=30) {
+  if(rr.length<2)return 0; const r=rr.slice(-w); let c=0;
+  for(let i=1;i<r.length;i++)if(Math.abs(r[i]-r[i-1])>50)c++;
+  return Math.round((c/(r.length-1))*100);
+}
+
+// ── TRIMP (Banister) ──
+function calcTRIMP(hr, dtMinutes) {
+  if(dtMinutes <= 0 || hr <= S.restHR) return 0;
+  const hrr = (hr - S.restHR) / (S.maxHR - S.restHR);
+  const clamped = Math.max(0, Math.min(1, hrr));
+  const k = S.sex === 'f' ? 1.67 : 1.92;
+  return dtMinutes * clamped * 0.64 * Math.exp(k * clamped);
+}
+
+// ── Baevsky Stress Index ──
+function calcStressIndex(rr) {
+  if(rr.length < 20) return 0;
+  const r = rr.slice(-60);
+  const sorted = [...r].sort((a,b) => a - b);
+  const mo = sorted[Math.floor(sorted.length / 2)] / 1000; // mode (median) in seconds
+  const mxdmn = (sorted[sorted.length-1] - sorted[0]) / 1000; // range in seconds
+  if(mo === 0 || mxdmn === 0) return 0;
+  // Histogram with 50ms bins
+  const binWidth = 50;
+  const bins = {};
+  r.forEach(v => { const bin = Math.round(v / binWidth) * binWidth; bins[bin] = (bins[bin]||0)+1; });
+  const maxBinCount = Math.max(...Object.values(bins));
+  const amo = (maxBinCount / r.length) * 100;
+  return Math.round(amo / (2 * mo * mxdmn));
+}
+
+// ── DFA alpha1 (Detrended Fluctuation Analysis) ──
+function calcDFA(rr) {
+  if(rr.length < 60) return null;
+  const r = rr.slice(-120);
+  const N = r.length;
+  const mean = r.reduce((a,b) => a+b, 0) / N;
+  // Integrate
+  const y = new Array(N);
+  y[0] = r[0] - mean;
+  for(let i = 1; i < N; i++) y[i] = y[i-1] + (r[i] - mean);
+  // Window sizes
+  const scales = [4, 6, 8, 10, 12, 16, 20, 24];
+  const validScales = scales.filter(n => n <= Math.floor(N/4));
+  if(validScales.length < 3) return null;
+  const logN = [], logF = [];
+  for(const n of validScales) {
+    const segments = Math.floor(N / n);
+    if(segments < 1) continue;
+    let totalVar = 0;
+    for(let seg = 0; seg < segments; seg++) {
+      const start = seg * n;
+      // Linear detrend within segment
+      let sx=0, sy=0, sxy=0, sxx=0;
+      for(let i = 0; i < n; i++) {
+        sx += i; sy += y[start+i]; sxy += i * y[start+i]; sxx += i*i;
+      }
+      const slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+      const intercept = (sy - slope * sx) / n;
+      let segVar = 0;
+      for(let i = 0; i < n; i++) {
+        const trend = intercept + slope * i;
+        const diff = y[start+i] - trend;
+        segVar += diff * diff;
+      }
+      totalVar += segVar / n;
+    }
+    const F = Math.sqrt(totalVar / segments);
+    if(F > 0) { logN.push(Math.log(n)); logF.push(Math.log(F)); }
+  }
+  if(logN.length < 3) return null;
+  // Linear regression for alpha
+  const nPts = logN.length;
+  let sumX=0, sumY=0, sumXY=0, sumXX=0;
+  for(let i = 0; i < nPts; i++) {
+    sumX += logN[i]; sumY += logF[i]; sumXY += logN[i]*logF[i]; sumXX += logN[i]*logN[i];
+  }
+  const alpha = (nPts * sumXY - sumX * sumY) / (nPts * sumXX - sumX * sumX);
+  return Math.round(alpha * 100) / 100;
+}
+
+// ── Lomb-Scargle (frequency domain HRV) ──
+function calcFrequencyDomain(rr) {
+  if(rr.length < 60) return { lf: 0, hf: 0, ratio: 0, respRate: 0 };
+  const r = rr.slice(-200);
+  const N = r.length;
+  const mean = r.reduce((a,b) => a+b, 0) / N;
+  // Build tachogram timestamps
+  const t = new Array(N);
+  t[0] = 0;
+  for(let i = 1; i < N; i++) t[i] = t[i-1] + r[i-1] / 1000; // in seconds
+  const x = r.map(v => v - mean);
+  // Frequency grid
+  const freqs = [];
+  for(let f = 0.04; f <= 0.40; f += 0.005) freqs.push(f);
+  const power = new Array(freqs.length);
+  let hfPeakFreq = 0.15, hfPeakPow = 0;
+  for(let fi = 0; fi < freqs.length; fi++) {
+    const f = freqs[fi];
+    const w = 2 * Math.PI * f;
+    let sc=0, ss=0;
+    for(let i = 0; i < N; i++) { sc += Math.sin(2*w*t[i]); ss += Math.cos(2*w*t[i]); }
+    const tau = Math.atan2(sc, ss) / (2*w);
+    let cc=0, ss2=0, csC=0, ssS=0;
+    for(let i = 0; i < N; i++) {
+      const cosV = Math.cos(w*(t[i]-tau));
+      const sinV = Math.sin(w*(t[i]-tau));
+      csC += x[i]*cosV; cc += cosV*cosV;
+      ssS += x[i]*sinV; ss2 += sinV*sinV;
+    }
+    power[fi] = cc > 0 && ss2 > 0 ? 0.5 * (csC*csC/cc + ssS*ssS/ss2) : 0;
+    if(freqs[fi] >= 0.15 && power[fi] > hfPeakPow) { hfPeakPow = power[fi]; hfPeakFreq = freqs[fi]; }
+  }
+  // Integrate bands
+  let lf = 0, hf = 0;
+  for(let i = 0; i < freqs.length; i++) {
+    if(freqs[i] >= 0.04 && freqs[i] < 0.15) lf += power[i];
+    if(freqs[i] >= 0.15 && freqs[i] <= 0.40) hf += power[i];
+  }
+  return {
+    lf: Math.round(lf),
+    hf: Math.round(hf),
+    ratio: hf > 0 ? Math.round((lf / hf) * 10) / 10 : 0,
+    respRate: Math.round(hfPeakFreq * 60)
+  };
+}
+
+// ── EPOC estimation ──
+function calcEPOC(hr, dtMinutes) {
+  const hrr = Math.max(0, (hr - S.restHR) / (S.maxHR - S.restHR));
+  const decayRate = 0.01;
+  let epoc = S.epoc * (1 - decayRate * dtMinutes);
+  if(hrr > 0.3) {
+    epoc += 0.1 * Math.exp(2.0 * hrr) * dtMinutes;
+  }
+  return Math.max(0, epoc);
+}
+
+// ── Training Effect from EPOC ──
+function getTrainingEffect(epoc) {
+  if(epoc < 10) return { value: 1, label: 'Recuperación', color: 'var(--z1)' };
+  if(epoc < 30) return { value: 2, label: 'Mantenimiento', color: 'var(--z2)' };
+  if(epoc < 60) return { value: 3, label: 'Mejora', color: 'var(--z3)' };
+  if(epoc < 100) return { value: 4, label: 'Alta mejora', color: 'var(--z4)' };
+  return { value: 5, label: 'Sobrecarga', color: 'var(--z5)' };
+}
+
+// ── HR Drift ──
+function calcHRDrift() {
+  if(S.hrCountFirstHalf < 30 || S.hrCountSecondHalf < 30) return 0;
+  const avgFirst = S.hrSumFirstHalf / S.hrCountFirstHalf;
+  const avgSecond = S.hrSumSecondHalf / S.hrCountSecondHalf;
+  return avgFirst > 0 ? Math.round(((avgSecond - avgFirst) / avgFirst) * 1000) / 10 : 0;
+}
+
+// ── HRV Trend Slope ──
+function calcHRVSlope(trend) {
+  if(trend.length < 3) return 0;
+  const n = trend.length;
+  let sx=0, sy=0, sxy=0, sxx=0;
+  for(let i = 0; i < n; i++) {
+    sx += trend[i].t; sy += trend[i].v; sxy += trend[i].t * trend[i].v; sxx += trend[i].t * trend[i].t;
+  }
+  const denom = n * sxx - sx * sx;
+  if(denom === 0) return 0;
+  return Math.round(((n * sxy - sx * sy) / denom) * 60 * 10) / 10; // ms per minute
+}
+
+// ── Formatting ──
+const fmt = s => `${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+const fmtClock = ts => {const d=new Date(ts);return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`};
+
+// ── Wake Lock ──
+async function requestWakeLock() {
+  if('wakeLock' in navigator) {
+    try {
+      S.wakeLock = await navigator.wakeLock.request('screen');
+      S.wakeLock.addEventListener('release', () => { S.wakeLock = null; });
+    } catch(e) { /* Wake Lock denied */ }
+  }
+}
+async function releaseWakeLock() {
+  if(S.wakeLock) { try { await S.wakeLock.release(); } catch(e) {} S.wakeLock = null; }
+}
+// Re-acquire wake lock when page becomes visible again
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && S.recording && !S.wakeLock) {
+    requestWakeLock();
+  }
+});
+
+// ── IndexedDB for session persistence ──
+const DB_NAME = 'hrsummit';
+const DB_VERSION = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains('session')) {
+        d.createObjectStore('session', { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror = () => reject();
+  });
+}
+
+function saveSession() {
+  if(!db || S.tsData.length === 0) return;
+  const tx = db.transaction('session', 'readwrite');
+  tx.objectStore('session').put({
+    id: 'active',
+    tsData: S.tsData,
+    rrAll: S.rrAll,
+    rrTsData: S.rrTsData,
+    hrMax: S.hrMax, hrMin: S.hrMin, hrSum: S.hrSum, hrCount: S.hrCount,
+    startTime: S.startTime,
+    zoneTimes: S.zoneTimes,
+    trimp: S.trimp, epoc: S.epoc,
+    hrSumFirstHalf: S.hrSumFirstHalf, hrCountFirstHalf: S.hrCountFirstHalf,
+    hrSumSecondHalf: S.hrSumSecondHalf, hrCountSecondHalf: S.hrCountSecondHalf,
+    rmssdTrend: S.rmssdTrend,
+  });
+}
+
+function loadSession() {
+  if(!db) return Promise.resolve(null);
+  return new Promise(resolve => {
+    const tx = db.transaction('session', 'readonly');
+    const req = tx.objectStore('session').get('active');
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => resolve(null);
+  });
+}
+
+function clearSession() {
+  if(!db) return;
+  const tx = db.transaction('session', 'readwrite');
+  tx.objectStore('session').delete('active');
+}
+
+// Save session periodically (every 10 seconds)
+setInterval(() => { if(S.recording) saveSession(); }, 10000);
+
+// ── BLE ──
+const HR_SERVICE = '0000180d-0000-1000-8000-00805f9b34fb';
+const HR_SERVICE_SHORT = 0x180D;
+const HR_MEASUREMENT = '00002a37-0000-1000-8000-00805f9b34fb';
+
+// Parse HR measurement characteristic value (shared between native and web)
+function parseHRValue(dataView) {
+  const flags = dataView.getUint8(0);
+  const is16 = flags & 0x01;
+  const hasEE = (flags>>3)&0x01;
+  const hasRR = (flags>>4)&0x01;
+  let off=1, hr;
+  if(is16){hr=dataView.getUint16(off,true);off+=2;}else{hr=dataView.getUint8(off);off+=1;}
+  if(hasEE)off+=2;
+  const rr=[];
+  if(hasRR){while(off+1<dataView.byteLength){const raw=dataView.getUint16(off,true);rr.push(Math.round((raw/1024)*1000));off+=2;}}
+  return { hr, rr };
+}
+
+// ── Native BLE (Capacitor) ──
+async function bleConnectNative() {
+  try {
+    S.status='scanning'; S.errorMsg=null; render();
+    const device = await BleClient.requestDevice({ services: [HR_SERVICE] });
+    S.deviceId = device.deviceId;
+    S.status='connecting'; render();
+
+    await BleClient.connect(device.deviceId, () => onDisconnected());
+    await BleClient.startNotifications(device.deviceId, HR_SERVICE, HR_MEASUREMENT, (value) => {
+      const { hr, rr } = parseHRValue(value);
+      addDataPoint(hr, rr);
+    });
+
+    S.status='connected';
+    startRecording();
+  } catch(e) {
+    if(e.message && e.message.includes('cancel')) { S.status='idle'; S.errorMsg=null; }
+    else { S.status='error'; S.errorMsg=e.message; }
+    render();
+  }
+}
+
+// ── Web Bluetooth (fallback for browser) ──
+async function bleConnectWeb() {
+  if(!navigator.bluetooth) { S.errorMsg='Web Bluetooth no disponible. Usa Chrome en Android o instala la app nativa.'; S.status='error'; render(); return; }
+  try {
+    S.status='scanning'; S.errorMsg=null; render();
+    const device = await navigator.bluetooth.requestDevice({
+      filters:[{services:[HR_SERVICE_SHORT]}],
+      optionalServices:[HR_SERVICE_SHORT]
+    });
+    S.device=device;
+    S.status='connecting'; render();
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(HR_SERVICE_SHORT);
+    const char = await service.getCharacteristic(0x2A37);
+    char.addEventListener('characteristicvaluechanged', (event) => {
+      const { hr, rr } = parseHRValue(event.target.value);
+      addDataPoint(hr, rr);
+    });
+    await char.startNotifications();
+    S.char=char; S.status='connected';
+    startRecording();
+  } catch(e) {
+    if(e.name==='NotFoundError') { S.status='idle'; S.errorMsg=null; }
+    else { S.status='error'; S.errorMsg=e.message; }
+    render();
+  }
+}
+
+// ── Unified connect ──
+async function bleConnect() {
+  if(isCapacitor && BleClient) {
+    await bleConnectNative();
+  } else {
+    await bleConnectWeb();
+  }
+}
+// Expose to onclick
+window.bleConnect = bleConnect;
+
+// Auto-reconnect on disconnect
+async function onDisconnected() {
+  S.status='idle';
+  if(S.recording) {
+    // Try to reconnect — keep data
+    try {
+      S.status='connecting'; render();
+      if(isCapacitor && BleClient && S.deviceId) {
+        await BleClient.connect(S.deviceId, () => onDisconnected());
+        await BleClient.startNotifications(S.deviceId, HR_SERVICE, HR_MEASUREMENT, (value) => {
+          const { hr, rr } = parseHRValue(value);
+          addDataPoint(hr, rr);
+        });
+        S.status='connected'; render(); return;
+      } else if(S.device) {
+        const server = await S.device.gatt.connect();
+        const service = await server.getPrimaryService(HR_SERVICE_SHORT);
+        const char = await service.getCharacteristic(0x2A37);
+        char.addEventListener('characteristicvaluechanged', (event) => {
+          const { hr, rr } = parseHRValue(event.target.value);
+          addDataPoint(hr, rr);
+        });
+        await char.startNotifications();
+        S.char = char; S.status='connected'; render(); return;
+      }
+    } catch(e) { /* reconnection failed */ }
+  }
+  S.recording = false;
+  clearInterval(window._timer);
+  releaseWakeLock();
+  render();
+}
+
+function addDataPoint(hr, rr) {
+  const t = Date.now();
+  const dtMin = S.lastSampleTime ? (t - S.lastSampleTime) / 60000 : 0;
+  S.hr = hr;
+  S.tsData.push({t, hr});
+  S.hrSum += hr; S.hrCount++;
+  if(hr > S.hrMax) S.hrMax = hr;
+  if(hr < S.hrMin) S.hrMin = hr;
+
+  // HR Drift — split into halves
+  const elapsed = (t - S.startTime) / 1000;
+  const halfPoint = elapsed / 2;
+  const sampleElapsed = (t - S.startTime) / 1000;
+  // Recalculate: all samples up to midpoint are "first half"
+  // This is approximate — we track running sums for each half
+  if(S.hrCount > 1) {
+    const midTime = S.startTime + (t - S.startTime) / 2;
+    if(t <= midTime + 1000) {
+      S.hrSumFirstHalf += hr; S.hrCountFirstHalf++;
+    } else {
+      S.hrSumSecondHalf += hr; S.hrCountSecondHalf++;
+    }
+  } else {
+    S.hrSumFirstHalf += hr; S.hrCountFirstHalf++;
+  }
+
+  // RR data
+  if(rr.length > 0) {
+    S.rrAll.push(...rr); if(S.rrAll.length > 300) S.rrAll = S.rrAll.slice(-300);
+    rr.forEach(r => { S.rrTsData.push({t, hr:r}); }); if(S.rrTsData.length > 120) S.rrTsData = S.rrTsData.slice(-120);
+  }
+
+  // Zone time
+  const zone = getZone(hr);
+  S.zoneTimes[zone.name] = (S.zoneTimes[zone.name]||0) + 1;
+
+  // Time-domain HRV
+  S.rmssd = Math.round(calcRMSSD(S.rrAll));
+  S.sdnn = Math.round(calcSDNN(S.rrAll));
+  S.pnn50 = calcPNN50(S.rrAll);
+
+  // TRIMP
+  if(dtMin > 0 && dtMin < 1) { // cap at 1 min to handle reconnections
+    S.trimp += calcTRIMP(hr, dtMin);
+  }
+
+  // EPOC
+  if(dtMin > 0 && dtMin < 1) {
+    S.epoc = calcEPOC(hr, dtMin);
+    S.trainingEffect = getTrainingEffect(S.epoc).value;
+  }
+
+  // Stress Index
+  S.stressIndex = calcStressIndex(S.rrAll);
+
+  // HR Drift
+  S.hrDrift = calcHRDrift();
+
+  // DFA alpha1 (every 5 seconds to save CPU)
+  if(!S._lastDFA || t - S._lastDFA > 5000) {
+    S.dfaAlpha1 = calcDFA(S.rrAll);
+    S._lastDFA = t;
+  }
+
+  // Frequency domain (every 10 seconds)
+  if(!S.lastFreqCalcTime || t - S.lastFreqCalcTime > 10000) {
+    if(S.rrAll.length >= 60) {
+      const freq = calcFrequencyDomain(S.rrAll);
+      S.lfPower = freq.lf;
+      S.hfPower = freq.hf;
+      S.lfHfRatio = freq.ratio;
+      S.respiratoryRate = freq.respRate;
+    }
+    S.lastFreqCalcTime = t;
+  }
+
+  // HRV Trend (every 60 seconds)
+  const elapsedSec = (t - S.startTime) / 1000;
+  if(elapsedSec - S.lastTrendTime >= 60 && S.rmssd > 0) {
+    S.rmssdTrend.push({ t: elapsedSec, v: S.rmssd });
+    S.hrvSlope = calcHRVSlope(S.rmssdTrend);
+    S.lastTrendTime = elapsedSec;
+  }
+
+  S.lastSampleTime = t;
+  render();
+}
+
+function startRecording() {
+  S.recording = true; S.startTime = Date.now();
+  S.tsData = []; S.rrAll = []; S.rrTsData = []; S.zoneTimes = {};
+  S.hrMax = 0; S.hrMin = 999; S.hrSum = 0; S.hrCount = 0; S.elapsed = 0;
+  S.rmssd = 0; S.sdnn = 0; S.pnn50 = 0;
+  S.trimp = 0; S.lastSampleTime = null;
+  S.stressIndex = 0; S.hrDrift = 0;
+  S.hrSumFirstHalf = 0; S.hrCountFirstHalf = 0;
+  S.hrSumSecondHalf = 0; S.hrCountSecondHalf = 0;
+  S.epoc = 0; S.trainingEffect = 0; S.lastEpocTime = null;
+  S.dfaAlpha1 = null;
+  S.lfPower = 0; S.hfPower = 0; S.lfHfRatio = 0; S.respiratoryRate = 0;
+  S.rmssdTrend = []; S.hrvSlope = 0; S.lastTrendTime = 0;
+  S.lastFreqCalcTime = 0; S._lastDFA = 0;
+  // Timer: calculate elapsed from startTime (survives screen-off)
+  window._timer = setInterval(() => {
+    S.elapsed = Math.floor((Date.now() - S.startTime) / 1000);
+    render();
+  }, 1000);
+  requestWakeLock();
+  // Start foreground service on native (keeps BLE alive with screen off)
+  if(isCapacitor && window.HRsummitNative) {
+    try { window.HRsummitNative.startForegroundService(); } catch(e) {}
+  }
+  render();
+}
+
+async function stopRecording() {
+  S.recording = false; clearInterval(window._timer);
+  try {
+    if(isCapacitor && BleClient && S.deviceId) {
+      await BleClient.stopNotifications(S.deviceId, HR_SERVICE, HR_MEASUREMENT);
+      await BleClient.disconnect(S.deviceId);
+    } else {
+      if(S.char) await S.char.stopNotifications();
+      if(S.device && S.device.gatt.connected) S.device.gatt.disconnect();
+    }
+  } catch(e) {}
+  // Stop foreground service on native
+  if(isCapacitor && window.HRsummitNative) {
+    try { window.HRsummitNative.stopForegroundService(); } catch(e) {}
+  }
+  S.status = 'idle';
+  releaseWakeLock();
+  clearSession();
+  render();
+}
+window.stopRecording = stopRecording;
+
+function exportCSV() {
+  if(S.tsData.length === 0) return;
+  let csv = 'timestamp,datetime,hr_bpm,zone,rmssd,trimp_cumulative\n';
+  let cumTrimp = 0;
+  S.tsData.forEach((d, i) => {
+    csv += `${d.t},${new Date(d.t).toISOString()},${d.hr},${getZone(d.hr).name},${S.rmssd},${Math.round(cumTrimp*10)/10}\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `hrsummit_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ── Chart state ──
+let chartState = { window:120, panOffset:0, cursor:null, dragging:false, dragStartX:0, dragStartOffset:0 };
+let rrChartState = { window:60, panOffset:0, cursor:null, dragging:false, dragStartX:0, dragStartOffset:0 };
+
+function renderChart(containerId, data, cs, h, showZones, lineColor, yLabel) {
+  const el = document.getElementById(containerId);
+  if(!el || data.length < 2) return;
+  const PAD = {top:22, right:10, bottom:28, left:40};
+  const W = el.offsetWidth || 360;
+  const plotW = W - PAD.left - PAD.right;
+  const plotH = h - PAD.top - PAD.bottom;
+  const now = data[data.length-1].t;
+  const endTime = now - cs.panOffset * 1000;
+  const startTime = endTime - cs.window * 1000;
+  const visible = data.filter(d => d.t >= startTime && d.t <= endTime);
+  if(visible.length < 2) { el.innerHTML = ''; return; }
+  const vals = visible.map(d => d.hr);
+  const yMin = Math.max(showZones ? 40 : Math.min(...vals)-20, Math.min(...vals)-10);
+  const yMax = Math.min(showZones ? S.maxHR+20 : Math.max(...vals)+20, Math.max(...vals)+10);
+  const xS = t => PAD.left + ((t-startTime)/(endTime-startTime)) * plotW;
+  const yS = v => PAD.top + plotH - ((v-yMin)/(yMax-yMin)) * plotH;
+  const isLive = cs.panOffset < 2;
+
+  let svg = `<svg viewBox="0 0 ${W} ${h}" style="width:100%;height:${h}px;display:block;touch-action:none;cursor:crosshair" id="${containerId}-svg">`;
+
+  if(showZones) {
+    getZones().filter(z => z.max > yMin && z.min < yMax).forEach(z => {
+      const top = yS(Math.min(z.max, yMax));
+      const bot = yS(Math.max(z.min, yMin));
+      svg += `<rect x="${PAD.left}" y="${top}" width="${plotW}" height="${bot-top}" fill="${z.color}" opacity="0.06"/>`;
+      svg += `<text x="${W-PAD.right-2}" y="${top+9}" font-size="6.5" fill="${z.color}" opacity="0.5" text-anchor="end" font-family="'IBM Plex Mono',monospace">${z.name}</text>`;
+    });
+  }
+
+  const yStep = (yMax-yMin) > 80 ? 20 : (yMax-yMin) > 40 ? 10 : 5;
+  for(let v = Math.ceil(yMin/yStep)*yStep; v <= yMax; v += yStep) {
+    svg += `<line x1="${PAD.left}" y1="${yS(v)}" x2="${W-PAD.right}" y2="${yS(v)}" stroke="#222" stroke-width="0.5"/>`;
+    svg += `<text x="${PAD.left-5}" y="${yS(v)+3}" font-size="8" fill="#555" text-anchor="end" font-family="'IBM Plex Mono',monospace">${v}</text>`;
+  }
+
+  const xStep = cs.window > 180 ? 60 : cs.window > 60 ? 30 : 15;
+  for(let t = Math.ceil(startTime/(xStep*1000))*(xStep*1000); t <= endTime; t += xStep*1000) {
+    svg += `<line x1="${xS(t)}" y1="${PAD.top}" x2="${xS(t)}" y2="${PAD.top+plotH}" stroke="#1a1a1a" stroke-width="0.5"/>`;
+    svg += `<text x="${xS(t)}" y="${h-5}" font-size="7.5" fill="#555" text-anchor="middle" font-family="'IBM Plex Mono',monospace">${fmtClock(t)}</text>`;
+  }
+
+  svg += `<defs><clipPath id="${containerId}-clip"><rect x="${PAD.left}" y="${PAD.top}" width="${plotW}" height="${plotH}"/></clipPath>`;
+  svg += `<linearGradient id="${containerId}-ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0.08"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>`;
+  svg += `<g clip-path="url(#${containerId}-clip)">`;
+
+  let area = `M${xS(visible[0].t)},${PAD.top+plotH}`;
+  visible.forEach(d => { area += ` L${xS(d.t)},${yS(d.hr)}`; });
+  area += ` L${xS(visible[visible.length-1].t)},${PAD.top+plotH} Z`;
+  svg += `<path d="${area}" fill="url(#${containerId}-ag)"/>`;
+
+  for(let i = 1; i < visible.length; i++) {
+    const c = lineColor || (showZones ? getZone(visible[i].hr).color : 'var(--fg)');
+    svg += `<line x1="${xS(visible[i-1].t)}" y1="${yS(visible[i-1].hr)}" x2="${xS(visible[i].t)}" y2="${yS(visible[i].hr)}" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`;
+  }
+
+  if(isLive) {
+    const last = visible[visible.length-1];
+    const lx = xS(last.t), ly = yS(last.hr);
+    svg += `<circle cx="${lx}" cy="${ly}" r="8" fill="#fff" opacity="0.12"><animate attributeName="r" values="5;11;5" dur="1.5s" repeatCount="indefinite"/></circle>`;
+    svg += `<circle cx="${lx}" cy="${ly}" r="3" fill="#fff" stroke="#000" stroke-width="1.5"/>`;
+  }
+
+  if(cs.cursor) {
+    const cx = xS(cs.cursor.t), cy = yS(cs.cursor.hr);
+    svg += `<line x1="${cx}" y1="${PAD.top}" x2="${cx}" y2="${PAD.top+plotH}" stroke="rgba(255,255,255,0.25)" stroke-width="0.5" stroke-dasharray="3,3"/>`;
+    svg += `<line x1="${PAD.left}" y1="${cy}" x2="${W-PAD.right}" y2="${cy}" stroke="rgba(255,255,255,0.12)" stroke-width="0.5" stroke-dasharray="3,3"/>`;
+    svg += `<circle cx="${cx}" cy="${cy}" r="5" fill="#fff" stroke="#000" stroke-width="2"/>`;
+  }
+
+  svg += `</g>`;
+  svg += `<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top+plotH}" stroke="#333" stroke-width="0.5"/>`;
+  svg += `<line x1="${PAD.left}" y1="${PAD.top+plotH}" x2="${W-PAD.right}" y2="${PAD.top+plotH}" stroke="#333" stroke-width="0.5"/>`;
+  svg += `<text x="11" y="${PAD.top+plotH/2}" font-size="7" fill="#555" text-anchor="middle" font-family="'IBM Plex Mono',monospace" transform="rotate(-90,11,${PAD.top+plotH/2})">${yLabel}</text>`;
+  svg += `</svg>`;
+
+  if(cs.cursor) {
+    const zn = showZones ? getZone(cs.cursor.hr).name : '';
+    svg += `<div class="tooltip"><span style="color:var(--fg3)">${fmtClock(cs.cursor.t)}</span><span style="font-weight:700">${cs.cursor.hr} ${showZones?'bpm':'ms'}</span>${zn?`<span style="color:var(--fg3)">${zn}</span>`:''}</div>`;
+  }
+
+  el.innerHTML = svg;
+
+  const svgEl = document.getElementById(`${containerId}-svg`);
+  if(!svgEl) return;
+  svgEl.onpointerdown = e => {
+    cs.dragging = true; cs.dragStartX = e.clientX; cs.dragStartOffset = cs.panOffset; cs.cursor = null;
+    svgEl.setPointerCapture(e.pointerId);
+  };
+  svgEl.onpointermove = e => {
+    if(cs.dragging) {
+      const dx = e.clientX - cs.dragStartX;
+      const rect = svgEl.getBoundingClientRect();
+      const secPerPx = cs.window / (rect.width - PAD.left - PAD.right);
+      cs.panOffset = Math.max(0, cs.dragStartOffset - dx * secPerPx);
+      renderChart(containerId, data, cs, h, showZones, lineColor, yLabel);
+      return;
+    }
+    const rect = svgEl.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / (rect.width) * (W);
+    if(px < PAD.left || px > W-PAD.right) { cs.cursor = null; renderChart(containerId, data, cs, h, showZones, lineColor, yLabel); return; }
+    const t = startTime + ((px - PAD.left) / plotW) * (endTime - startTime);
+    let closest = null, minD = Infinity;
+    visible.forEach(d => { const dist = Math.abs(d.t - t); if(dist < minD) { minD = dist; closest = d; } });
+    if(closest) { cs.cursor = closest; renderChart(containerId, data, cs, h, showZones, lineColor, yLabel); }
+  };
+  svgEl.onpointerup = () => { cs.dragging = false; };
+  svgEl.onpointerleave = () => { cs.dragging = false; cs.cursor = null; renderChart(containerId, data, cs, h, showZones, lineColor, yLabel); };
+}
+
+// ── Render ──
+function render() {
+  const app = document.getElementById('app');
+  const zone = getZone(S.hr);
+  const zones = getZones();
+  const total = Object.values(S.zoneTimes).reduce((a,b) => a+b, 0);
+  const te = getTrainingEffect(S.epoc);
+
+  let html = `
+  <div class="header">
+    <div>
+      <div class="header-sub">Garmin HRM-600 · BLE</div>
+      <div class="header-title">HRsummit</div>
+    </div>
+    <div class="status-row">
+      <div class="status-dot" style="background:${S.status==='connected'?'#75e6a0':S.status==='scanning'||S.status==='connecting'?'#ffd166':'#333'};${S.status==='connected'?'box-shadow:0 0 6px #75e6a0':''}${S.status==='scanning'?';animation:blink 1s infinite':''}"></div>
+      <span class="status-text">${S.status==='connected'?'Conectado':S.status==='scanning'?'Buscando...':S.status==='connecting'?'Conectando...':'Off'}</span>
+      ${S.wakeLock?'<span class="wakelock-badge">WL</span>':''}
+    </div>
+  </div>`;
+
+  // ── NOT CONNECTED ──
+  if(S.status !== 'connected') {
+    html += `<div class="centered">
+      <div class="centered-heart">♥</div>
+      <div class="centered-title">HRsummit</div>
+      <div class="centered-sub">Monitor cardíaco BLE para montaña<br>Garmin HRM-600 · Alta montaña</div>
+      <div class="centered-spec">Heart Rate Service: 0x180D<br>HR Measurement: 0x2A37<br>FC Máx: ${S.maxHR} bpm · FC Reposo: ${S.restHR} bpm</div>
+      ${S.errorMsg?`<div class="error-box">${S.errorMsg}</div>`:''}
+      <button class="btn-connect" onclick="bleConnect()" ${S.status==='scanning'||S.status==='connecting'?'disabled':''}>
+        ${S.status==='scanning'?'Buscando...':S.status==='connecting'?'Conectando...':'Conectar HRM-600'}
+      </button>
+    </div>`;
+    app.innerHTML = html;
+    return;
+  }
+
+  // ── CONNECTED ──
+  html += `<div class="tabs">
+    <button class="tab ${S.tab==='live'?'active':''}" onclick="S.tab='live';render()">En vivo</button>
+    <button class="tab ${S.tab==='zonas'?'active':''}" onclick="S.tab='zonas';render()">Zonas</button>
+    <button class="tab ${S.tab==='rend'?'active':''}" onclick="S.tab='rend';render()">Rend.</button>
+    <button class="tab ${S.tab==='hrv'?'active':''}" onclick="S.tab='hrv';render()">HRV</button>
+    <button class="tab ${S.tab==='config'?'active':''}" onclick="S.tab='config';render()">Config</button>
+  </div>`;
+
+  // ══════ LIVE ══════
+  if(S.tab === 'live') {
+    html += `
+    <div class="hr-card">
+      <div class="hr-heart" style="animation-duration:${S.hr>0?60/S.hr:1}s">♥</div>
+      <div>
+        <span class="hr-value">${S.hr}</span><span class="hr-unit">bpm</span>
+        <div style="margin-top:2px"><span class="zone-badge" style="border-color:${zone.color};color:${zone.color}">${zone.name}</span></div>
+      </div>
+      <div class="hr-right">
+        <div style="font-size:9px;color:var(--fg3)">TRIMP <span style="font-weight:700;font-size:14px;color:var(--fg)">${Math.round(S.trimp)}</span></div>
+        <div style="font-size:10px;color:var(--fg3);margin-top:3px">${fmt(S.elapsed)}</div>
+      </div>
+    </div>
+
+    <div class="stats-row stats-4">
+      <div class="stat"><div class="stat-label">MÍN</div><div class="stat-value">${S.hrMin===999?'--':S.hrMin}</div></div>
+      <div class="stat"><div class="stat-label">PROM</div><div class="stat-value">${S.hrCount?Math.round(S.hrSum/S.hrCount):'--'}</div></div>
+      <div class="stat"><div class="stat-label">MÁX</div><div class="stat-value">${S.hrMax||'--'}</div></div>
+      <div class="stat"><div class="stat-label">HRV</div><div class="stat-value">${S.rmssd}</div><div class="stat-unit">ms</div></div>
+    </div>
+
+    <div class="stats-row stats-3">
+      <div class="stat"><div class="stat-label">DFA α1</div><div class="stat-value" style="color:${S.dfaAlpha1===null?'var(--fg3)':S.dfaAlpha1>0.75?'var(--z2)':S.dfaAlpha1>0.5?'var(--z3)':'var(--z4)'}">${S.dfaAlpha1!==null?S.dfaAlpha1.toFixed(2):'--'}</div></div>
+      <div class="stat"><div class="stat-label">ESTRÉS</div><div class="stat-value">${S.stressIndex}</div></div>
+      <div class="stat"><div class="stat-label">RESP</div><div class="stat-value">${S.respiratoryRate||'--'}</div><div class="stat-unit">rpm</div></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-label">Serie de tiempo — Frecuencia cardíaca</div>
+      <div class="chart-controls">
+        <div class="chart-zoom">
+          <button class="chart-btn" onclick="chartState.window=Math.max(30,Math.round(chartState.window/2));render()">+</button>
+          <button class="chart-btn" onclick="chartState.window=Math.min(600,chartState.window*2);render()">−</button>
+          <span class="chart-window">${chartState.window}s</span>
+        </div>
+        ${chartState.panOffset<2?`<span class="live-dot">● EN VIVO</span>`:`<button class="live-btn" onclick="chartState.panOffset=0;render()">● LIVE</button>`}
+      </div>
+      <div id="chart-hr" style="position:relative"></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-label">Tiempo en zonas</div>
+      <div class="zone-bar">${zones.map(z => { const p = total>0?((S.zoneTimes[z.name]||0)/total)*100:0; return p>0?`<div style="width:${p}%;background:${z.color};transition:width .5s"></div>`:'' }).join('')}</div>
+      <div class="zone-labels">${zones.map(z => { const p = total>0?Math.round(((S.zoneTimes[z.name]||0)/total)*100):0; return `<div style="text-align:center"><div class="zone-label-name" style="color:${z.color}">${z.name.split(' ')[0]}</div><div class="zone-label-pct" style="color:${z.color}">${p}%</div></div>` }).join('')}</div>
+    </div>`;
+  }
+
+  // ══════ ZONAS ══════
+  if(S.tab === 'zonas') {
+    zones.forEach(z => {
+      const t = S.zoneTimes[z.name] || 0;
+      const p = total > 0 ? (t/total)*100 : 0;
+      html += `<div class="zone-row" style="border-left-color:${z.color}">
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span class="zone-row-name" style="color:${z.color}">${z.name}</span>
+            <span class="zone-row-range">${z.min}–${z.max===S.maxHR+1?S.maxHR:z.max} bpm</span>
+          </div>
+          <div class="zone-row-bar"><div class="zone-row-fill" style="width:${p}%;background:${z.color}"></div></div>
+          <div class="zone-row-footer">
+            <span class="zone-row-text">${fmt(t)}</span>
+            <span class="zone-row-text">${Math.round(p)}%</span>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // ══════ RENDIMIENTO ══════
+  if(S.tab === 'rend') {
+    // TRIMP
+    html += `<div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-name">TRIMP — Carga de entrenamiento</span>
+      </div>
+      <div class="metric-main">
+        <span class="metric-big">${Math.round(S.trimp)}</span>
+        <span class="metric-unit">pts</span>
+      </div>
+      <div class="metric-bar"><div class="metric-bar-fill" style="width:${Math.min(100,S.trimp/2)}%;background:${S.trimp<50?'var(--z2)':S.trimp<100?'var(--z3)':S.trimp<200?'var(--z4)':'var(--z5)'}"></div></div>
+      <div class="metric-desc">${S.trimp<50?'Carga baja — sesión de recuperación':S.trimp<100?'Carga moderada — buen estímulo aeróbico':S.trimp<200?'Carga alta — sesión exigente':'Carga muy alta — asegura buena recuperación'}</div>
+    </div>`;
+
+    // Training Effect / EPOC
+    html += `<div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-name">Efecto de entrenamiento (EPOC)</span>
+        <span class="metric-indicator" style="background:${te.color}22;color:${te.color};border:1px solid ${te.color}44">${te.label}</span>
+      </div>
+      <div class="metric-main">
+        <span class="metric-big">${te.value}</span>
+        <span class="metric-unit">/ 5 — EPOC: ${Math.round(S.epoc)} ml/kg</span>
+      </div>
+      <div class="metric-bar"><div class="metric-bar-fill" style="width:${te.value*20}%;background:${te.color}"></div></div>
+    </div>`;
+
+    // DFA alpha1
+    const dfaColor = S.dfaAlpha1===null?'var(--fg3)':S.dfaAlpha1>0.75?'var(--z2)':S.dfaAlpha1>0.5?'var(--z3)':'var(--z4)';
+    const dfaStatus = S.dfaAlpha1===null?'Esperando datos RR...':S.dfaAlpha1>1.0?'Baja intensidad — sub-aeróbico':S.dfaAlpha1>0.75?'Bajo umbral aeróbico — zona óptima para base':S.dfaAlpha1>0.5?'En umbral — zona de transición aeróbica/anaeróbica':'Supra-umbral — intensidad alta, limita tiempo en esta zona';
+    html += `<div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-name">DFA α1 — Umbral aeróbico</span>
+        <span class="metric-indicator" style="background:${dfaColor}22;color:${dfaColor};border:1px solid ${dfaColor}44">${S.dfaAlpha1===null?'--':S.dfaAlpha1>0.75?'SUB-UMBRAL':S.dfaAlpha1>0.5?'UMBRAL':'SUPRA'}</span>
+      </div>
+      <div class="metric-main">
+        <span class="metric-big" style="color:${dfaColor}">${S.dfaAlpha1!==null?S.dfaAlpha1.toFixed(2):'--'}</span>
+      </div>
+      <div class="metric-desc">${dfaStatus}</div>
+      <div class="note" style="margin-top:6px;margin-bottom:0"><strong>Altitud:</strong> Tu umbral aeróbico baja con la altura. DFA α1 detecta este cambio automáticamente — si α1 baja a la misma FC que en nivel del mar, tu umbral se ha reducido.</div>
+    </div>`;
+
+    // Cardiac Drift
+    const driftColor = Math.abs(S.hrDrift)<3?'var(--z2)':Math.abs(S.hrDrift)<5?'var(--z3)':Math.abs(S.hrDrift)<10?'var(--z4)':'var(--z5)';
+    html += `<div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-name">Deriva cardíaca</span>
+      </div>
+      <div class="metric-main">
+        <span class="metric-big" style="color:${driftColor}">${S.hrDrift>0?'+':''}${S.hrDrift}</span>
+        <span class="metric-unit">%</span>
+      </div>
+      <div class="metric-desc">${S.elapsed<600?'Necesita >10 min para ser significativo':Math.abs(S.hrDrift)<3?'Excelente eficiencia aeróbica':Math.abs(S.hrDrift)<5?'Normal — dentro de rango aceptable':Math.abs(S.hrDrift)<10?'Desacoplamiento moderado — acercándose al límite':'Desacoplamiento significativo — considera reducir intensidad'}</div>
+    </div>`;
+
+    // Stress Index
+    html += `<div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-name">Índice de estrés (Baevsky)</span>
+      </div>
+      <div class="metric-main">
+        <span class="metric-big">${S.stressIndex}</span>
+      </div>
+      <div class="metric-bar"><div class="metric-bar-fill" style="width:${Math.min(100,S.stressIndex/10)}%;background:${S.stressIndex<150?'var(--z2)':S.stressIndex<300?'var(--z3)':S.stressIndex<500?'var(--z4)':'var(--z5)'}"></div></div>
+      <div class="metric-desc">${S.stressIndex<150?'Estrés bajo — buena regulación autonómica':S.stressIndex<300?'Estrés moderado':S.stressIndex<500?'Estrés alto — alta activación simpática':'Estrés muy alto — posible fatiga acumulada o mala aclimatación'}</div>
+    </div>`;
+
+    // Respiratory Rate
+    html += `<div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-name">Frecuencia respiratoria estimada</span>
+      </div>
+      <div class="metric-main">
+        <span class="metric-big">${S.respiratoryRate||'--'}</span>
+        <span class="metric-unit">resp/min</span>
+      </div>
+      <div class="metric-desc">${!S.respiratoryRate?'Esperando datos...':S.respiratoryRate<=16?'Rango normal a nivel del mar':S.respiratoryRate<=20?'Hiperventilación leve — esperable a 3000-4000m':S.respiratoryRate<=25?'Hiperventilación significativa — esperable >4500m':'Hiperventilación marcada — monitorea síntomas de mal de altura'}</div>
+    </div>`;
+
+    // HRV Trend
+    const slopeColor = S.hrvSlope > 0 ? 'var(--z2)' : S.hrvSlope > -0.5 ? 'var(--z3)' : 'var(--z4)';
+    html += `<div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-name">Tendencia HRV (RMSSD)</span>
+      </div>
+      <div class="metric-main">
+        <span class="metric-big" style="color:${slopeColor}">${S.hrvSlope>0?'+':''}${S.hrvSlope.toFixed(1)}</span>
+        <span class="metric-unit">ms/min</span>
+      </div>
+      <div class="metric-desc">${S.rmssdTrend.length<3?'Necesita más datos (>3 min)...':S.hrvSlope>0?'HRV subiendo — buena señal, calentamiento o recuperando':S.hrvSlope>-0.5?'HRV estable — función autonómica controlada':'HRV bajando — fatiga progresiva, considera descanso'}</div>
+    </div>`;
+  }
+
+  // ══════ HRV ══════
+  if(S.tab === 'hrv') {
+    html += `
+    <div class="hrv-big">
+      <div class="hrv-label">RMSSD (HRV)</div>
+      <div class="hrv-value">${S.rmssd}<span class="hrv-unit"> ms</span></div>
+      <div class="hrv-status">${S.rmssd>50?'Buena recuperación':S.rmssd>30?'Recuperación moderada':'Recuperación baja — prioriza descanso'}</div>
+    </div>
+
+    <div class="stats-row stats-3">
+      <div class="stat"><div class="stat-label">RMSSD</div><div class="stat-value">${S.rmssd}</div><div class="stat-unit">ms</div></div>
+      <div class="stat"><div class="stat-label">SDNN</div><div class="stat-value">${S.sdnn}</div><div class="stat-unit">ms</div></div>
+      <div class="stat"><div class="stat-label">pNN50</div><div class="stat-value">${S.pnn50}</div><div class="stat-unit">%</div></div>
+    </div>
+
+    <div class="stats-row stats-2">
+      <div class="stat"><div class="stat-label">LF/HF</div><div class="stat-value" style="color:${S.lfHfRatio<1.5?'var(--z2)':S.lfHfRatio<3?'var(--z3)':'var(--z4)'}">${S.lfHfRatio||'--'}</div></div>
+      <div class="stat"><div class="stat-label">DFA α1</div><div class="stat-value" style="color:${S.dfaAlpha1===null?'var(--fg3)':S.dfaAlpha1>0.75?'var(--z2)':S.dfaAlpha1>0.5?'var(--z3)':'var(--z4)'}">${S.dfaAlpha1!==null?S.dfaAlpha1.toFixed(2):'--'}</div></div>
+    </div>
+
+    <div class="card">
+      <div class="chart-label">Intervalos R-R</div>
+      <div class="chart-controls">
+        <div class="chart-zoom">
+          <button class="chart-btn" onclick="rrChartState.window=Math.max(15,Math.round(rrChartState.window/2));render()">+</button>
+          <button class="chart-btn" onclick="rrChartState.window=Math.min(300,rrChartState.window*2);render()">−</button>
+          <span class="chart-window">${rrChartState.window}s</span>
+        </div>
+        ${rrChartState.panOffset<2?`<span class="live-dot">● EN VIVO</span>`:`<button class="live-btn" onclick="rrChartState.panOffset=0;render()">● LIVE</button>`}
+      </div>
+      <div id="chart-rr" style="position:relative"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:3px">
+        <span style="font-size:9px;color:var(--fg3)">Último: ${S.rrAll.length>0?S.rrAll[S.rrAll.length-1]:'--'} ms</span>
+        <span style="font-size:9px;color:var(--fg3)">Muestras: ${S.rrAll.length}</span>
+      </div>
+    </div>
+
+    <div class="note"><strong>HRV y altitud:</strong> La variabilidad cardíaca disminuye con la altitud. Un RMSSD bajo en altura no necesariamente indica sobreentrenamiento — compara siempre con tu baseline al mismo nivel altitudinal. LF/HF &gt; 3.0 en reposo puede indicar aclimatación incompleta.</div>`;
+  }
+
+  // ══════ CONFIG ══════
+  if(S.tab === 'config') {
+    html += `
+    <div class="card">
+      <div class="config-group">
+        <div class="config-label">Frecuencia cardíaca máxima</div>
+        <div class="config-input-row">
+          <input type="number" class="config-input" value="${S.maxHR}" min="140" max="230"
+            onchange="S.maxHR=parseInt(this.value)||190;render()">
+          <span style="font-size:12px;color:var(--fg3)">bpm</span>
+        </div>
+        <div class="config-hint">Las zonas y métricas se calculan como porcentaje de tu FC máxima.</div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">Frecuencia cardíaca en reposo</div>
+        <div class="config-input-row">
+          <input type="number" class="config-input" value="${S.restHR}" min="30" max="100"
+            onchange="S.restHR=parseInt(this.value)||55;render()">
+          <span style="font-size:12px;color:var(--fg3)">bpm</span>
+        </div>
+        <div class="config-hint">Necesaria para calcular TRIMP y EPOC. Mide al despertar, acostado.</div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">Sexo (para cálculo TRIMP)</div>
+        <div class="config-input-row">
+          <select class="config-select" onchange="S.sex=this.value;render()">
+            <option value="m" ${S.sex==='m'?'selected':''}>Masculino</option>
+            <option value="f" ${S.sex==='f'?'selected':''}>Femenino</option>
+          </select>
+        </div>
+        <div class="config-hint">Afecta el factor exponencial de TRIMP (Banister).</div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">Zonas calculadas</div>
+        <div class="config-zones">
+          ${zones.map(z => `<div class="config-zone-row">
+            <div class="config-zone-dot" style="background:${z.color}"></div>
+            <div class="config-zone-name">${z.name}</div>
+            <div class="config-zone-range">${z.min} – ${z.max===S.maxHR+1?S.maxHR:z.max} bpm</div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">Fórmula de zonas</div>
+        <div class="config-hint">
+          Z1 Reposo: &lt; 50% FCmáx<br>
+          Z2 Quema grasa: 50–60% FCmáx<br>
+          Z3 Aeróbico: 60–70% FCmáx<br>
+          Z4 Umbral: 70–80% FCmáx<br>
+          Z5 VO₂ Máx: 80–100% FCmáx
+        </div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">Métricas de rendimiento</div>
+        <div class="config-hint">
+          <strong>TRIMP:</strong> Carga acumulada (Banister). Pondera intensidad exponencialmente.<br>
+          <strong>DFA α1:</strong> Análisis fractal de intervalos RR. Detecta umbral aeróbico en tiempo real.<br>
+          <strong>Baevsky SI:</strong> Índice de estrés cardiovascular. Refleja activación simpática.<br>
+          <strong>EPOC:</strong> Exceso de consumo de O₂ post-ejercicio. Estima demanda de recuperación.<br>
+          <strong>LF/HF:</strong> Balance autonómico. Elevado en altitud = aclimatación incompleta.<br>
+          <strong>Freq. Resp:</strong> Estimada desde pico HF del espectro RR.<br>
+          <strong>Deriva cardíaca:</strong> Comparación FC 1ª vs 2ª mitad de la sesión.
+        </div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">Dispositivo</div>
+        <div class="config-hint">
+          Banda: Garmin HRM-600<br>
+          Protocolo: Bluetooth Low Energy<br>
+          Service: 0x180D · Char: 0x2A37
+        </div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">Información</div>
+        <div class="config-hint">
+          HRsummit v2.0<br>
+          ${isCapacitor?'App Nativa (Capacitor)':'PWA (Web Bluetooth)'} · IndexedDB<br>
+          BLE: ${isCapacitor?'Nativo':'Web Bluetooth API'}<br>
+          Datos procesados localmente<br>
+          Sin envío de datos a servidores externos
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── Action buttons ──
+  if(S.status === 'connected') {
+    html += `<div class="action-row">
+      <button class="btn-export" onclick="exportCSV()">↓ CSV</button>
+      <button class="btn-stop" onclick="stopRecording()">■ Detener</button>
+    </div>`;
+  }
+
+  app.innerHTML = html;
+
+  // Render charts after DOM update
+  requestAnimationFrame(() => {
+    if(S.tab === 'live' && S.tsData.length > 1) renderChart('chart-hr', S.tsData, chartState, 200, true, null, 'BPM');
+    if(S.tab === 'hrv' && S.rrTsData.length > 1) renderChart('chart-rr', S.rrTsData, rrChartState, 160, false, '#fff', 'ms');
+  });
+}
+
+// ── Load saved config ──
+try {
+  const saved = localStorage.getItem('km_config');
+  if(saved) {
+    const cfg = JSON.parse(saved);
+    if(cfg.maxHR) S.maxHR = cfg.maxHR;
+    if(cfg.restHR) S.restHR = cfg.restHR;
+    if(cfg.sex) S.sex = cfg.sex;
+  }
+} catch(e) {}
+
+// Save config on render
+const _origRender = render;
+render = function() {
+  try {
+    localStorage.setItem('km_config', JSON.stringify({ maxHR: S.maxHR, restHR: S.restHR, sex: S.sex }));
+  } catch(e) {}
+  _origRender();
+};
+
+// ── Expose to global scope (needed for inline onclick with type="module") ──
+window.S = S;
+window.render = render;
+window.exportCSV = exportCSV;
+window.chartState = chartState;
+window.rrChartState = rrChartState;
+
+// ── Service Worker (only in browser, not needed in Capacitor) ──
+if(!isCapacitor && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── Init ──
+openDB().then(() => {
+  // Check for interrupted session
+  loadSession().then(session => {
+    if(session && session.tsData && session.tsData.length > 0) {
+      // Restore session data
+      S.tsData = session.tsData;
+      S.rrAll = session.rrAll || [];
+      S.rrTsData = session.rrTsData || [];
+      S.hrMax = session.hrMax; S.hrMin = session.hrMin;
+      S.hrSum = session.hrSum; S.hrCount = session.hrCount;
+      S.startTime = session.startTime;
+      S.zoneTimes = session.zoneTimes || {};
+      S.trimp = session.trimp || 0;
+      S.epoc = session.epoc || 0;
+      S.hrSumFirstHalf = session.hrSumFirstHalf || 0;
+      S.hrCountFirstHalf = session.hrCountFirstHalf || 0;
+      S.hrSumSecondHalf = session.hrSumSecondHalf || 0;
+      S.hrCountSecondHalf = session.hrCountSecondHalf || 0;
+      S.rmssdTrend = session.rmssdTrend || [];
+      S.elapsed = Math.floor((Date.now() - S.startTime) / 1000);
+    }
+    render();
+  });
+}).catch(() => { render(); });
+</script>
+</body>
+</html>
