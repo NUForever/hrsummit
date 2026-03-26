@@ -208,8 +208,9 @@ color:var(--fg);font-family:inherit;font-size:14px;font-weight:600}
 <div id="app"></div>
 
 <script type="module">
+try {
 // ═══════════════════════════════════════════════════════
-// KARDIOMAZOV v3.0 — Garmin HRM-600 BLE Heart Rate Monitor
+// HRsummit v3.0 — Garmin HRM-600 BLE Heart Rate Monitor
 // Capacitor Native · BLE · High Altitude Training · Freemium
 // ═══════════════════════════════════════════════════════
 
@@ -219,11 +220,70 @@ let BleClient = null;
 
 if(isCapacitor) {
   try {
-    const mod = await import('https://unpkg.com/@capacitor-community/bluetooth-le@6.0.1/dist/esm/index.js');
-    BleClient = mod.BleClient;
-    await BleClient.initialize({ androidNeverForLocation: true });
+    // Access BLE plugin — try registerPlugin first, then direct Plugins access
+    let BluetoothLe;
+    if(typeof window.Capacitor.registerPlugin === 'function') {
+      BluetoothLe = window.Capacitor.registerPlugin('BluetoothLe');
+    } else if(window.Capacitor.Plugins && window.Capacitor.Plugins.BluetoothLe) {
+      BluetoothLe = window.Capacitor.Plugins.BluetoothLe;
+    } else {
+      throw new Error('No registerPlugin and no Plugins.BluetoothLe');
+    }
+    let bleInitialized = false;
+
+    // Minimal BleClient wrapper matching the API we use
+    const eventListeners = new Map();
+    BleClient = {
+      async initialize(opts) {
+        if(bleInitialized) return;
+        await BluetoothLe.initialize(opts);
+        bleInitialized = true;
+      },
+      async requestDevice(opts) { return await BluetoothLe.requestDevice(opts); },
+      async connect(deviceId, onDisconnect) {
+        if(onDisconnect) {
+          const key = `disconnected|${deviceId}`;
+          const old = eventListeners.get(key);
+          if(old) await old.remove();
+          const listener = await BluetoothLe.addListener(key, () => onDisconnect(deviceId));
+          eventListeners.set(key, listener);
+        }
+        await BluetoothLe.connect({ deviceId });
+      },
+      async startNotifications(deviceId, service, characteristic, callback) {
+        const key = `notification|${deviceId}|${service}|${characteristic}`;
+        const old = eventListeners.get(key);
+        if(old) await old.remove();
+        const listener = await BluetoothLe.addListener(key, (event) => {
+          // Convert hex string from native to DataView
+          let val = event && event.value;
+          if(typeof val === 'string') {
+            if(val.length === 0) { val = new DataView(new ArrayBuffer(0)); }
+            else {
+              const bytes = new Uint8Array(val.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+              val = new DataView(bytes.buffer);
+            }
+          } else if(!(val instanceof DataView)) {
+            val = new DataView(new ArrayBuffer(0));
+          }
+          callback(val);
+        });
+        eventListeners.set(key, listener);
+        await BluetoothLe.startNotifications({ deviceId, service, characteristic });
+      },
+      async stopNotifications(deviceId, service, characteristic) {
+        const key = `notification|${deviceId}|${service}|${characteristic}`;
+        const old = eventListeners.get(key);
+        if(old) await old.remove();
+        eventListeners.delete(key);
+        await BluetoothLe.stopNotifications({ deviceId, service, characteristic });
+      },
+      async disconnect(deviceId) { await BluetoothLe.disconnect({ deviceId }); }
+    };
   } catch(e) {
-    console.warn('Capacitor BLE init failed, falling back to Web Bluetooth', e);
+    // Store error for display on connect attempt
+    window._bleRegError = e.message + ' | ' + e.stack;
+    BleClient = null;
   }
 }
 
@@ -592,15 +652,11 @@ const LANG = {
   }
 };
 
-// Language detection & storage
+// Language: always English by default, user can switch in Config
 let currentLang = 'en';
 try {
   const stored = localStorage.getItem('hrsummit_lang');
   if(stored && LANG[stored]) { currentLang = stored; }
-  else {
-    const nav = (navigator.language || 'en').slice(0,2).toLowerCase();
-    if(LANG[nav]) currentLang = nav;
-  }
 } catch(e) {}
 
 function t(key) { return (LANG[currentLang] && LANG[currentLang][key]) || (LANG.en[key]) || key; }
@@ -618,8 +674,9 @@ window.setLang = setLang;
 // ═══════════════════════════════════════════════════════
 // ── Premium State ──
 // ═══════════════════════════════════════════════════════
-let premiumState = false;
-try { premiumState = localStorage.getItem('hrsummit_premium') === 'true'; } catch(e) {}
+// TESTING: default to true. Set to false for production release with RevenueCat
+let premiumState = true;
+try { const stored = localStorage.getItem('hrsummit_premium'); if(stored !== null) premiumState = stored === 'true'; } catch(e) {}
 
 window.upgradePremium = function() {
   // Placeholder for RevenueCat integration
@@ -1046,6 +1103,8 @@ function parseHRValue(dataView) {
 // ── Native BLE (Capacitor) ──
 async function bleConnectNative() {
   try {
+    // Initialize BLE on first connect (requests permissions)
+    await BleClient.initialize({ androidNeverForLocation: true });
     S.status='scanning'; S.errorMsg=null; render();
     const device = await BleClient.requestDevice({ services: [HR_SERVICE] });
     S.deviceId = device.deviceId;
@@ -1099,6 +1158,11 @@ async function bleConnectWeb() {
 async function bleConnect() {
   if(isCapacitor && BleClient) {
     await bleConnectNative();
+  } else if(isCapacitor && !BleClient) {
+    // Native but plugin not loaded — show registration error
+    S.errorMsg = 'BLE reg error: ' + (window._bleRegError || 'unknown') + ' | Plugins: ' + JSON.stringify(Object.keys(window.Capacitor.Plugins || {}));
+    S.status = 'error';
+    render();
   } else {
     await bleConnectWeb();
   }
@@ -2027,6 +2091,9 @@ openDB().then(async () => {
   }
   render();
 }).catch(() => { render(); });
+} catch(globalError) {
+  document.getElementById('app').innerHTML = '<div style="color:#ff6b6b;padding:20px;font-family:monospace;font-size:12px"><h2 style="color:#fff">HRsummit Error</h2><p>' + globalError.message + '</p><pre>' + globalError.stack + '</pre></div>';
+}
 </script>
 </body>
 </html>

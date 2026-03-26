@@ -86,33 +86,40 @@
   - WebView cache disabled in MainActivity.java
   - BLE initialization deferred to first connect (lazy init) for permission flow
   - Detailed error messages showing plugin state for debugging
-- **Current versionCode**: 7 (v2.1.6) built locally, waiting for Play Store propagation
-- **Last version confirmed on Play Store internal test**: 2.1.4
+- **Current versionCode**: 8 (v2.1.7) uploaded to Play Store internal test, awaiting propagation
+- **Last version tested on device**: v2.1.6 (showed BLE error with plugin list — confirmed plugin IS registered)
+- **Play Store propagation**: Takes 10-30 min for internal test versions. User must: uninstall → force stop Play Store → clear Play Store cache → reinstall from internal test link
 
 ---
 
 ## Active Bug: BLE Not Working in Native App
 
-### Symptoms
-1. v2.0.0-2.1.3: Shows "Web Bluetooth not available" (was using wrong BLE API)
-2. v2.1.4: Black screen (JS crash from unhandled error in module top-level)
-3. v2.1.5-2.1.6: Not yet tested (Play Store propagation slow)
+### Symptoms (progressive debugging)
+1. v2.0.0-2.1.3: Shows "Web Bluetooth not available" (was using dynamic import from unpkg which fails in WebView)
+2. v2.1.4: Black screen (JS crash — unhandled top-level error in `<script type="module">`)
+3. v2.1.5: Black screen (same — no global error handler yet)
+4. v2.1.6: Shows error: "BLE plugin not available. Capacitor:true, Plugins:["systemBars","BluetoothLe","CapacitorCookies","WebView","CapacitorHttp","BackgroundTask"]"
+   - **Key finding**: BluetoothLe IS in the plugins list, but BleClient is null after try-catch
+   - This means `registerPlugin('BluetoothLe')` throws or the try block fails somewhere
+5. v2.1.7: Added detailed error capture — will show the EXACT exception from the try-catch
 
 ### What's Been Tried
 1. Dynamic import from unpkg CDN → fails in WebView (no network module loading)
-2. `window.Capacitor.Plugins.BluetoothLe` direct access → plugin not exposed this way
-3. `Capacitor.registerPlugin('BluetoothLe')` → should work, but initialize() may fail without runtime permissions
-4. Lazy initialization (init on connect, not on load) → avoids permission timing issues
-5. Global try-catch → prevents black screen, shows error message instead
+2. `Capacitor.registerPlugin('BluetoothLe')` with wrapper → plugin is listed but BleClient ends up null
+3. Lazy initialization (init on connect, not on load) → avoids permission timing issues
+4. Global try-catch → prevents black screen, shows error
+5. Dual access: try `registerPlugin()` first, fallback to `Capacitor.Plugins.BluetoothLe` direct → v2.1.7
+
+### Critical Discovery from v2.1.6
+The plugin **IS registered natively** (appears in Plugins list). The `registerPlugin()` call or something in the try block throws. v2.1.7 captures and displays the exact error.
 
 ### Next Steps to Fix
-1. Upload v2.1.6 (versionCode 7) to Play Store internal test — has global error handler
-2. Install on device and read the actual error message displayed
-3. Based on error, likely fixes:
-   - If permission error: Add runtime permission request before BLE initialize
-   - If plugin not found: Check that `npx cap sync` properly copied the plugin
-   - If other: Error message will indicate the issue
-4. Alternative approach if `registerPlugin` doesn't work: Bundle the plugin JS into the HTML file directly as inline script
+1. **IMMEDIATE**: Install v2.1.7 when it propagates on Play Store, read the exact error message
+2. Based on the error:
+   - If `registerPlugin is not a function`: Use `Capacitor.Plugins.BluetoothLe` directly (already added as fallback in v2.1.7)
+   - If another error in the wrapper code: Fix the specific line
+   - If the plugin proxy doesn't have `initialize`/`requestDevice` methods: May need to call native methods differently
+3. Alternative approach: Use `Capacitor.Plugins.BluetoothLe` directly with `addListener` for notifications (skip registerPlugin entirely)
 
 ### Technical Notes on Capacitor BLE
 - Plugin: `@capacitor-community/bluetooth-le` v8.1.3
@@ -255,4 +262,5 @@ cd .. && git add -A && git commit -m "message" && git push origin main
 | 4 | 2.1.3 | BLE fix (registerPlugin + lazy init) | Confirmed on device |
 | 5 | 2.1.4 | BLE fix + improved error handling | Confirmed on device (black screen) |
 | 6 | 2.1.5 | English default, WebView cache disabled, debug error info | Uploaded |
-| 7 | 2.1.6 | Global try-catch (prevents black screen), BLE registration in try-catch | Built locally, awaiting upload/propagation |
+| 7 | 2.1.6 | Global try-catch (prevents black screen), BLE registration in try-catch | Tested on device — shows "BLE plugin not available" with plugin list |
+| 8 | 2.1.7 | Detailed BLE registration error capture, dual plugin access (registerPlugin + Plugins direct) | Built, uploaded to Play Store internal test, awaiting propagation |
