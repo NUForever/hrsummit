@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
@@ -146,6 +146,59 @@ font-size:10px;color:#ff6b6b;text-align:center;width:100%}
 .wakelock-badge{font-size:8px;color:#75e6a0;background:rgba(117,230,160,0.1);border:1px solid rgba(117,230,160,0.2);
 border-radius:4px;padding:1px 5px;margin-left:6px}
 
+/* Premium overlay */
+.premium-overlay{position:relative}
+.premium-overlay .premium-blur{filter:blur(5px);pointer-events:none;user-select:none}
+.premium-overlay .premium-lock{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;
+align-items:center;justify-content:center;z-index:10;background:rgba(0,0,0,0.45);border-radius:12px}
+.premium-lock-icon{font-size:32px;margin-bottom:8px;opacity:0.8}
+.premium-lock-btn{background:var(--z5);color:#fff;border:none;border-radius:8px;padding:10px 28px;
+font-size:12px;font-weight:700;letter-spacing:0.5px;font-family:inherit;cursor:pointer;margin-top:4px}
+.premium-lock-text{font-size:10px;color:var(--fg2);margin-bottom:4px}
+
+/* Paywall banner */
+.paywall-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.95) 20%);
+padding:30px 16px 20px;z-index:100;text-align:center}
+.paywall-banner-inner{max-width:520px;margin:0 auto;background:#111;border:1px solid var(--z5);border-radius:14px;padding:16px}
+.paywall-banner-title{font-size:14px;font-weight:700;color:var(--fg);margin-bottom:6px}
+.paywall-banner-desc{font-size:10px;color:var(--fg3);margin-bottom:12px;line-height:1.4}
+.paywall-banner-btn{background:var(--z5);color:#fff;border:none;border-radius:8px;padding:12px 32px;
+font-size:13px;font-weight:700;letter-spacing:0.5px;font-family:inherit;cursor:pointer}
+.paywall-banner-dismiss{background:none;border:none;color:var(--fg3);font-size:10px;margin-top:10px;
+font-family:inherit;cursor:pointer;text-decoration:underline}
+
+/* Premium badge */
+.premium-badge{display:inline-block;background:var(--z5);color:#fff;font-size:6px;font-weight:700;
+letter-spacing:1px;padding:1px 4px;border-radius:3px;margin-left:4px;vertical-align:middle}
+
+/* Session notes input */
+.session-notes-input{width:100%;background:#0a0a0a;border:1px solid var(--border);border-radius:10px;
+padding:10px 12px;color:var(--fg);font-family:inherit;font-size:10px;resize:none;outline:none;
+margin-bottom:8px}
+.session-notes-input:focus{border-color:var(--fg3)}
+.session-notes-input::placeholder{color:var(--fg4)}
+
+/* History */
+.history-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;background:#0a0a0a}
+.history-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.history-card-date{font-size:11px;font-weight:600;color:var(--fg)}
+.history-card-duration{font-size:10px;color:var(--fg3)}
+.history-card-stats{display:flex;gap:12px}
+.history-card-stat{text-align:center}
+.history-card-stat-label{font-size:7px;color:var(--fg3);letter-spacing:1px}
+.history-card-stat-value{font-size:14px;font-weight:700;color:var(--fg)}
+
+/* Recovery circle */
+.recovery-circle{width:100px;height:100px;border-radius:50%;display:flex;flex-direction:column;
+align-items:center;justify-content:center;margin:0 auto 8px;position:relative}
+.recovery-circle svg{position:absolute;top:0;left:0;width:100%;height:100%}
+.recovery-score-val{font-size:28px;font-weight:700;color:var(--fg);position:relative;z-index:1}
+.recovery-score-label{font-size:7px;color:var(--fg3);letter-spacing:1.5px;position:relative;z-index:1}
+
+/* Lang select */
+.lang-select{background:#111;border:1px solid var(--border);border-radius:8px;padding:10px 14px;
+color:var(--fg);font-family:inherit;font-size:14px;font-weight:600}
+
 @keyframes pulse{0%,100%{transform:scale(1)}15%{transform:scale(1.3)}30%{transform:scale(1)}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .blink{animation:blink 1s infinite}
@@ -156,8 +209,8 @@ border-radius:4px;padding:1px 5px;margin-left:6px}
 
 <script type="module">
 // ═══════════════════════════════════════════════════════
-// KARDIOMAZOV v2.0 — Garmin HRM-600 BLE Heart Rate Monitor
-// Capacitor Native · BLE · High Altitude Training
+// KARDIOMAZOV v3.0 — Garmin HRM-600 BLE Heart Rate Monitor
+// Capacitor Native · BLE · High Altitude Training · Freemium
 // ═══════════════════════════════════════════════════════
 
 // ── Platform detection & Capacitor BLE import ──
@@ -174,6 +227,410 @@ if(isCapacitor) {
   }
 }
 
+// ═══════════════════════════════════════════════════════
+// ── i18n System ──
+// ═══════════════════════════════════════════════════════
+const LANG = {
+  en: {
+    // Tabs
+    tab_live: 'Live',
+    tab_zones: 'Zones',
+    tab_history: 'History',
+    tab_rend: 'Perf.',
+    tab_hrv: 'HRV',
+    tab_config: 'Config',
+
+    // Status
+    status_connected: 'Connected',
+    status_scanning: 'Scanning...',
+    status_connecting: 'Connecting...',
+    status_off: 'Off',
+
+    // Disconnected screen
+    disc_title: 'HRsummit',
+    disc_sub: 'BLE heart rate monitor for mountain<br>Garmin HRM-600 · High altitude',
+    disc_spec_hr_service: 'Heart Rate Service: 0x180D',
+    disc_spec_hr_char: 'HR Measurement: 0x2A37',
+    disc_spec_maxhr: 'Max HR',
+    disc_spec_resthr: 'Rest HR',
+    btn_connect: 'Connect HRM-600',
+    btn_scanning: 'Scanning...',
+    btn_connecting: 'Connecting...',
+    error_web_ble: 'Web Bluetooth not available. Use Chrome on Android or install the native app.',
+
+    // Recovery
+    recovery_title: 'RECOVERY',
+    recovery_locked: '???',
+
+    // Live tab
+    live_trimp: 'TRIMP',
+    live_min: 'MIN',
+    live_avg: 'AVG',
+    live_max: 'MAX',
+    live_hrv: 'HRV',
+    live_dfa: 'DFA \u03b11',
+    live_stress: 'STRESS',
+    live_resp: 'RESP',
+    live_resp_unit: 'rpm',
+    live_chart_title: 'Time series \u2014 Heart rate',
+    live_chart_live: 'LIVE',
+    live_zone_time: 'Time in zones',
+    live_notes_placeholder: 'Altitude & conditions notes...',
+
+    // Zones tab
+    zone_rest: 'Rest',
+    zone_fatburn: 'Fat burn',
+    zone_aerobic: 'Aerobic',
+    zone_threshold: 'Threshold',
+    zone_vo2max: 'VO\u2082 Max',
+
+    // History tab
+    history_title: 'Session History',
+    history_no_sessions: 'No sessions recorded yet.',
+    history_free_limit: 'Only the last session is shown. Upgrade for full history.',
+    history_avg: 'AVG',
+    history_max: 'MAX',
+    history_trimp: 'TRIMP',
+
+    // Rendimiento tab
+    rend_trimp_name: 'TRIMP \u2014 Training load',
+    rend_trimp_low: 'Low load \u2014 recovery session',
+    rend_trimp_mod: 'Moderate load \u2014 good aerobic stimulus',
+    rend_trimp_high: 'High load \u2014 demanding session',
+    rend_trimp_vhigh: 'Very high load \u2014 ensure good recovery',
+    rend_te_name: 'Training effect (EPOC)',
+    rend_te_unit: '/ 5 \u2014 EPOC:',
+    rend_te_unit2: 'ml/kg',
+    rend_dfa_name: 'DFA \u03b11 \u2014 Aerobic threshold',
+    rend_dfa_waiting: 'Waiting for RR data...',
+    rend_dfa_sub: 'Low intensity \u2014 sub-aerobic',
+    rend_dfa_under: 'Below aerobic threshold \u2014 optimal base zone',
+    rend_dfa_thresh: 'At threshold \u2014 aerobic/anaerobic transition zone',
+    rend_dfa_supra: 'Supra-threshold \u2014 high intensity, limit time here',
+    rend_dfa_sub_label: 'SUB-THRESH',
+    rend_dfa_thresh_label: 'THRESHOLD',
+    rend_dfa_supra_label: 'SUPRA',
+    rend_dfa_alt_note: '<strong>Altitude:</strong> Your aerobic threshold drops with altitude. DFA \u03b11 detects this change automatically \u2014 if \u03b11 drops at the same HR as at sea level, your threshold has decreased.',
+    rend_drift_name: 'Cardiac drift',
+    rend_drift_wait: 'Needs >10 min to be significant',
+    rend_drift_excellent: 'Excellent aerobic efficiency',
+    rend_drift_normal: 'Normal \u2014 within acceptable range',
+    rend_drift_mod: 'Moderate decoupling \u2014 approaching limit',
+    rend_drift_sig: 'Significant decoupling \u2014 consider reducing intensity',
+    rend_si_name: 'Stress Index (Baevsky)',
+    rend_si_low: 'Low stress \u2014 good autonomic regulation',
+    rend_si_mod: 'Moderate stress',
+    rend_si_high: 'High stress \u2014 high sympathetic activation',
+    rend_si_vhigh: 'Very high stress \u2014 possible accumulated fatigue or poor acclimatization',
+    rend_resp_name: 'Estimated respiratory rate',
+    rend_resp_unit: 'resp/min',
+    rend_resp_wait: 'Waiting for data...',
+    rend_resp_normal: 'Normal range at sea level',
+    rend_resp_mild: 'Mild hyperventilation \u2014 expected at 3000-4000m',
+    rend_resp_sig: 'Significant hyperventilation \u2014 expected >4500m',
+    rend_resp_marked: 'Marked hyperventilation \u2014 monitor altitude sickness symptoms',
+    rend_hrv_trend_name: 'HRV Trend (RMSSD)',
+    rend_hrv_trend_unit: 'ms/min',
+    rend_hrv_trend_wait: 'Needs more data (>3 min)...',
+    rend_hrv_trend_up: 'HRV rising \u2014 good sign, warming up or recovering',
+    rend_hrv_trend_stable: 'HRV stable \u2014 controlled autonomic function',
+    rend_hrv_trend_down: 'HRV dropping \u2014 progressive fatigue, consider rest',
+    rend_vo2max_name: 'VO\u2082max Estimation',
+    rend_vo2max_unit: 'ml/kg/min',
+    rend_vo2max_desc: 'Uth et al. 2004: 15.3 x (maxHR / restHR)',
+    rend_vo2max_poor: 'Below average',
+    rend_vo2max_avg: 'Average',
+    rend_vo2max_good: 'Good',
+    rend_vo2max_excellent: 'Excellent',
+    rend_vo2max_elite: 'Elite',
+
+    // Training effect labels
+    te_recovery: 'Recovery',
+    te_maintenance: 'Maintenance',
+    te_improvement: 'Improvement',
+    te_high_improvement: 'High improvement',
+    te_overload: 'Overload',
+
+    // HRV tab
+    hrv_rmssd_title: 'RMSSD (HRV)',
+    hrv_good: 'Good recovery',
+    hrv_moderate: 'Moderate recovery',
+    hrv_low: 'Low recovery \u2014 prioritize rest',
+    hrv_rmssd: 'RMSSD',
+    hrv_sdnn: 'SDNN',
+    hrv_pnn50: 'pNN50',
+    hrv_lfhf: 'LF/HF',
+    hrv_dfa: 'DFA \u03b11',
+    hrv_rr_title: 'R-R Intervals',
+    hrv_rr_last: 'Last',
+    hrv_rr_samples: 'Samples',
+    hrv_alt_note: '<strong>HRV and altitude:</strong> Heart rate variability decreases with altitude. Low RMSSD at altitude does not necessarily indicate overtraining \u2014 always compare with your baseline at the same altitude. LF/HF > 3.0 at rest may indicate incomplete acclimatization.',
+
+    // Config tab
+    config_maxhr: 'Maximum heart rate',
+    config_resthr: 'Resting heart rate',
+    config_resthr_hint: 'Required for TRIMP and EPOC calculation. Measure upon waking, lying down.',
+    config_maxhr_hint: 'Zones and metrics are calculated as a percentage of your max HR.',
+    config_sex: 'Sex (for TRIMP calculation)',
+    config_male: 'Male',
+    config_female: 'Female',
+    config_sex_hint: 'Affects the exponential factor of TRIMP (Banister).',
+    config_zones_calc: 'Calculated zones',
+    config_zones_formula: 'Zone formula',
+    config_zones_formula_detail: 'Z1 Rest: < 50% HRmax\nZ2 Fat burn: 50\u201360% HRmax\nZ3 Aerobic: 60\u201370% HRmax\nZ4 Threshold: 70\u201380% HRmax\nZ5 VO\u2082 Max: 80\u2013100% HRmax',
+    config_perf_metrics: 'Performance metrics',
+    config_perf_detail: '<strong>TRIMP:</strong> Accumulated load (Banister). Weights intensity exponentially.<br><strong>DFA \u03b11:</strong> Fractal analysis of RR intervals. Detects aerobic threshold in real time.<br><strong>Baevsky SI:</strong> Cardiovascular stress index. Reflects sympathetic activation.<br><strong>EPOC:</strong> Excess post-exercise O\u2082 consumption. Estimates recovery demand.<br><strong>LF/HF:</strong> Autonomic balance. Elevated at altitude = incomplete acclimatization.<br><strong>Resp. freq.:</strong> Estimated from HF peak of RR spectrum.<br><strong>Cardiac drift:</strong> Comparison HR 1st vs 2nd half of session.',
+    config_device: 'Device',
+    config_device_detail_band: 'Band: Garmin HRM-600',
+    config_device_detail_protocol: 'Protocol: Bluetooth Low Energy',
+    config_device_detail_service: 'Service: 0x180D \u00b7 Char: 0x2A37',
+    config_info: 'Information',
+    config_info_version: 'HRsummit v3.0',
+    config_info_native: 'Native App (Capacitor)',
+    config_info_pwa: 'PWA (Web Bluetooth)',
+    config_info_indexeddb: 'IndexedDB',
+    config_info_ble_native: 'Native',
+    config_info_ble_web: 'Web Bluetooth API',
+    config_info_local: 'Data processed locally',
+    config_info_no_cloud: 'No data sent to external servers',
+    config_lang: 'Language',
+    config_premium: 'Premium',
+    config_premium_active: 'Premium active',
+    config_premium_free: 'Free tier',
+    config_premium_upgrade: 'Upgrade to Premium',
+    config_premium_toggle: 'Toggle Premium (dev)',
+
+    // Buttons
+    btn_stop: 'Stop',
+    btn_csv: 'CSV',
+
+    // Paywall
+    paywall_title: 'Session limit reached',
+    paywall_desc: 'Free sessions are limited to 30 minutes. Upgrade for unlimited sessions and all advanced metrics.',
+    paywall_btn: 'Unlock Premium',
+    paywall_dismiss: 'Dismiss',
+    premium_unlock: 'Unlock Premium',
+    premium_badge: 'PRO',
+
+    // Units
+    unit_bpm: 'bpm',
+    unit_ms: 'ms',
+    unit_pts: 'pts',
+  },
+
+  es: {
+    tab_live: 'En vivo',
+    tab_zones: 'Zonas',
+    tab_history: 'Historial',
+    tab_rend: 'Rend.',
+    tab_hrv: 'HRV',
+    tab_config: 'Config',
+
+    status_connected: 'Conectado',
+    status_scanning: 'Buscando...',
+    status_connecting: 'Conectando...',
+    status_off: 'Off',
+
+    disc_title: 'HRsummit',
+    disc_sub: 'Monitor card\u00edaco BLE para monta\u00f1a<br>Garmin HRM-600 \u00b7 Alta monta\u00f1a',
+    disc_spec_hr_service: 'Heart Rate Service: 0x180D',
+    disc_spec_hr_char: 'HR Measurement: 0x2A37',
+    disc_spec_maxhr: 'FC M\u00e1x',
+    disc_spec_resthr: 'FC Reposo',
+    btn_connect: 'Conectar HRM-600',
+    btn_scanning: 'Buscando...',
+    btn_connecting: 'Conectando...',
+    error_web_ble: 'Web Bluetooth no disponible. Usa Chrome en Android o instala la app nativa.',
+
+    recovery_title: 'RECUPERACI\u00d3N',
+    recovery_locked: '???',
+
+    live_trimp: 'TRIMP',
+    live_min: 'M\u00cdN',
+    live_avg: 'PROM',
+    live_max: 'M\u00c1X',
+    live_hrv: 'HRV',
+    live_dfa: 'DFA \u03b11',
+    live_stress: 'ESTR\u00c9S',
+    live_resp: 'RESP',
+    live_resp_unit: 'rpm',
+    live_chart_title: 'Serie de tiempo \u2014 Frecuencia card\u00edaca',
+    live_chart_live: 'EN VIVO',
+    live_zone_time: 'Tiempo en zonas',
+    live_notes_placeholder: 'Notas de altitud y condiciones...',
+
+    zone_rest: 'Reposo',
+    zone_fatburn: 'Quema grasa',
+    zone_aerobic: 'Aer\u00f3bico',
+    zone_threshold: 'Umbral',
+    zone_vo2max: 'VO\u2082 M\u00e1x',
+
+    history_title: 'Historial de sesiones',
+    history_no_sessions: 'No hay sesiones registradas.',
+    history_free_limit: 'Solo se muestra la \u00faltima sesi\u00f3n. Mejora para ver el historial completo.',
+    history_avg: 'PROM',
+    history_max: 'M\u00c1X',
+    history_trimp: 'TRIMP',
+
+    rend_trimp_name: 'TRIMP \u2014 Carga de entrenamiento',
+    rend_trimp_low: 'Carga baja \u2014 sesi\u00f3n de recuperaci\u00f3n',
+    rend_trimp_mod: 'Carga moderada \u2014 buen est\u00edmulo aer\u00f3bico',
+    rend_trimp_high: 'Carga alta \u2014 sesi\u00f3n exigente',
+    rend_trimp_vhigh: 'Carga muy alta \u2014 asegura buena recuperaci\u00f3n',
+    rend_te_name: 'Efecto de entrenamiento (EPOC)',
+    rend_te_unit: '/ 5 \u2014 EPOC:',
+    rend_te_unit2: 'ml/kg',
+    rend_dfa_name: 'DFA \u03b11 \u2014 Umbral aer\u00f3bico',
+    rend_dfa_waiting: 'Esperando datos RR...',
+    rend_dfa_sub: 'Baja intensidad \u2014 sub-aer\u00f3bico',
+    rend_dfa_under: 'Bajo umbral aer\u00f3bico \u2014 zona \u00f3ptima para base',
+    rend_dfa_thresh: 'En umbral \u2014 zona de transici\u00f3n aer\u00f3bica/anaer\u00f3bica',
+    rend_dfa_supra: 'Supra-umbral \u2014 intensidad alta, limita tiempo en esta zona',
+    rend_dfa_sub_label: 'SUB-UMBRAL',
+    rend_dfa_thresh_label: 'UMBRAL',
+    rend_dfa_supra_label: 'SUPRA',
+    rend_dfa_alt_note: '<strong>Altitud:</strong> Tu umbral aer\u00f3bico baja con la altura. DFA \u03b11 detecta este cambio autom\u00e1ticamente \u2014 si \u03b11 baja a la misma FC que en nivel del mar, tu umbral se ha reducido.',
+    rend_drift_name: 'Deriva card\u00edaca',
+    rend_drift_wait: 'Necesita >10 min para ser significativo',
+    rend_drift_excellent: 'Excelente eficiencia aer\u00f3bica',
+    rend_drift_normal: 'Normal \u2014 dentro de rango aceptable',
+    rend_drift_mod: 'Desacoplamiento moderado \u2014 acerc\u00e1ndose al l\u00edmite',
+    rend_drift_sig: 'Desacoplamiento significativo \u2014 considera reducir intensidad',
+    rend_si_name: '\u00cdndice de estr\u00e9s (Baevsky)',
+    rend_si_low: 'Estr\u00e9s bajo \u2014 buena regulaci\u00f3n auton\u00f3mica',
+    rend_si_mod: 'Estr\u00e9s moderado',
+    rend_si_high: 'Estr\u00e9s alto \u2014 alta activaci\u00f3n simp\u00e1tica',
+    rend_si_vhigh: 'Estr\u00e9s muy alto \u2014 posible fatiga acumulada o mala aclimataci\u00f3n',
+    rend_resp_name: 'Frecuencia respiratoria estimada',
+    rend_resp_unit: 'resp/min',
+    rend_resp_wait: 'Esperando datos...',
+    rend_resp_normal: 'Rango normal a nivel del mar',
+    rend_resp_mild: 'Hiperventilaci\u00f3n leve \u2014 esperable a 3000-4000m',
+    rend_resp_sig: 'Hiperventilaci\u00f3n significativa \u2014 esperable >4500m',
+    rend_resp_marked: 'Hiperventilaci\u00f3n marcada \u2014 monitorea s\u00edntomas de mal de altura',
+    rend_hrv_trend_name: 'Tendencia HRV (RMSSD)',
+    rend_hrv_trend_unit: 'ms/min',
+    rend_hrv_trend_wait: 'Necesita m\u00e1s datos (>3 min)...',
+    rend_hrv_trend_up: 'HRV subiendo \u2014 buena se\u00f1al, calentamiento o recuperando',
+    rend_hrv_trend_stable: 'HRV estable \u2014 funci\u00f3n auton\u00f3mica controlada',
+    rend_hrv_trend_down: 'HRV bajando \u2014 fatiga progresiva, considera descanso',
+    rend_vo2max_name: 'Estimaci\u00f3n VO\u2082max',
+    rend_vo2max_unit: 'ml/kg/min',
+    rend_vo2max_desc: 'Uth et al. 2004: 15.3 x (FCm\u00e1x / FCrep)',
+    rend_vo2max_poor: 'Por debajo del promedio',
+    rend_vo2max_avg: 'Promedio',
+    rend_vo2max_good: 'Bueno',
+    rend_vo2max_excellent: 'Excelente',
+    rend_vo2max_elite: '\u00c9lite',
+
+    te_recovery: 'Recuperaci\u00f3n',
+    te_maintenance: 'Mantenimiento',
+    te_improvement: 'Mejora',
+    te_high_improvement: 'Alta mejora',
+    te_overload: 'Sobrecarga',
+
+    hrv_rmssd_title: 'RMSSD (HRV)',
+    hrv_good: 'Buena recuperaci\u00f3n',
+    hrv_moderate: 'Recuperaci\u00f3n moderada',
+    hrv_low: 'Recuperaci\u00f3n baja \u2014 prioriza descanso',
+    hrv_rmssd: 'RMSSD',
+    hrv_sdnn: 'SDNN',
+    hrv_pnn50: 'pNN50',
+    hrv_lfhf: 'LF/HF',
+    hrv_dfa: 'DFA \u03b11',
+    hrv_rr_title: 'Intervalos R-R',
+    hrv_rr_last: '\u00daltimo',
+    hrv_rr_samples: 'Muestras',
+    hrv_alt_note: '<strong>HRV y altitud:</strong> La variabilidad card\u00edaca disminuye con la altitud. Un RMSSD bajo en altura no necesariamente indica sobreentrenamiento \u2014 compara siempre con tu baseline al mismo nivel altitudinal. LF/HF &gt; 3.0 en reposo puede indicar aclimataci\u00f3n incompleta.',
+
+    config_maxhr: 'Frecuencia card\u00edaca m\u00e1xima',
+    config_resthr: 'Frecuencia card\u00edaca en reposo',
+    config_resthr_hint: 'Necesaria para calcular TRIMP y EPOC. Mide al despertar, acostado.',
+    config_maxhr_hint: 'Las zonas y m\u00e9tricas se calculan como porcentaje de tu FC m\u00e1xima.',
+    config_sex: 'Sexo (para c\u00e1lculo TRIMP)',
+    config_male: 'Masculino',
+    config_female: 'Femenino',
+    config_sex_hint: 'Afecta el factor exponencial de TRIMP (Banister).',
+    config_zones_calc: 'Zonas calculadas',
+    config_zones_formula: 'F\u00f3rmula de zonas',
+    config_zones_formula_detail: 'Z1 Reposo: < 50% FCm\u00e1x\nZ2 Quema grasa: 50\u201360% FCm\u00e1x\nZ3 Aer\u00f3bico: 60\u201370% FCm\u00e1x\nZ4 Umbral: 70\u201380% FCm\u00e1x\nZ5 VO\u2082 M\u00e1x: 80\u2013100% FCm\u00e1x',
+    config_perf_metrics: 'M\u00e9tricas de rendimiento',
+    config_perf_detail: '<strong>TRIMP:</strong> Carga acumulada (Banister). Pondera intensidad exponencialmente.<br><strong>DFA \u03b11:</strong> An\u00e1lisis fractal de intervalos RR. Detecta umbral aer\u00f3bico en tiempo real.<br><strong>Baevsky SI:</strong> \u00cdndice de estr\u00e9s cardiovascular. Refleja activaci\u00f3n simp\u00e1tica.<br><strong>EPOC:</strong> Exceso de consumo de O\u2082 post-ejercicio. Estima demanda de recuperaci\u00f3n.<br><strong>LF/HF:</strong> Balance auton\u00f3mico. Elevado en altitud = aclimataci\u00f3n incompleta.<br><strong>Freq. Resp:</strong> Estimada desde pico HF del espectro RR.<br><strong>Deriva card\u00edaca:</strong> Comparaci\u00f3n FC 1\u00aa vs 2\u00aa mitad de la sesi\u00f3n.',
+    config_device: 'Dispositivo',
+    config_device_detail_band: 'Banda: Garmin HRM-600',
+    config_device_detail_protocol: 'Protocolo: Bluetooth Low Energy',
+    config_device_detail_service: 'Service: 0x180D \u00b7 Char: 0x2A37',
+    config_info: 'Informaci\u00f3n',
+    config_info_version: 'HRsummit v3.0',
+    config_info_native: 'App Nativa (Capacitor)',
+    config_info_pwa: 'PWA (Web Bluetooth)',
+    config_info_indexeddb: 'IndexedDB',
+    config_info_ble_native: 'Nativo',
+    config_info_ble_web: 'Web Bluetooth API',
+    config_info_local: 'Datos procesados localmente',
+    config_info_no_cloud: 'Sin env\u00edo de datos a servidores externos',
+    config_lang: 'Idioma',
+    config_premium: 'Premium',
+    config_premium_active: 'Premium activo',
+    config_premium_free: 'Nivel gratuito',
+    config_premium_upgrade: 'Mejorar a Premium',
+    config_premium_toggle: 'Alternar Premium (dev)',
+
+    btn_stop: 'Detener',
+    btn_csv: 'CSV',
+
+    paywall_title: 'L\u00edmite de sesi\u00f3n alcanzado',
+    paywall_desc: 'Las sesiones gratuitas est\u00e1n limitadas a 30 minutos. Mejora para sesiones ilimitadas y todas las m\u00e9tricas avanzadas.',
+    paywall_btn: 'Desbloquear Premium',
+    paywall_dismiss: 'Cerrar',
+    premium_unlock: 'Desbloquear Premium',
+    premium_badge: 'PRO',
+
+    unit_bpm: 'bpm',
+    unit_ms: 'ms',
+    unit_pts: 'pts',
+  }
+};
+
+// Language detection & storage
+let currentLang = 'en';
+try {
+  const stored = localStorage.getItem('hrsummit_lang');
+  if(stored && LANG[stored]) { currentLang = stored; }
+  else {
+    const nav = (navigator.language || 'en').slice(0,2).toLowerCase();
+    if(LANG[nav]) currentLang = nav;
+  }
+} catch(e) {}
+
+function t(key) { return (LANG[currentLang] && LANG[currentLang][key]) || (LANG.en[key]) || key; }
+
+function setLang(lang) {
+  if(LANG[lang]) {
+    currentLang = lang;
+    try { localStorage.setItem('hrsummit_lang', lang); } catch(e) {}
+    document.documentElement.lang = lang;
+    render();
+  }
+}
+window.setLang = setLang;
+
+// ═══════════════════════════════════════════════════════
+// ── Premium State ──
+// ═══════════════════════════════════════════════════════
+let premiumState = false;
+try { premiumState = localStorage.getItem('hrsummit_premium') === 'true'; } catch(e) {}
+
+window.upgradePremium = function() {
+  // Placeholder for RevenueCat integration
+  premiumState = !premiumState;
+  try { localStorage.setItem('hrsummit_premium', premiumState ? 'true' : 'false'); } catch(e) {}
+  render();
+};
+
+const FREE_SESSION_LIMIT = 30 * 60; // 30 minutes in seconds
+let sessionLimitShown = false;
+let sessionLimitDismissed = false;
 
 // ── State ──
 const S = {
@@ -196,6 +653,9 @@ const S = {
   device: null,
   char: null,
   wakeLock: null,
+  premium: premiumState,
+  sessionNotes: '',
+  sessionLimitReached: false,
 
   // Performance metrics
   trimp: 0,
@@ -224,16 +684,25 @@ const S = {
 function getZones() {
   const m = S.maxHR;
   return [
-    { name:'Reposo',      min:0,              max:Math.round(m*0.50), color:'var(--z1)' },
-    { name:'Quema grasa', min:Math.round(m*0.50), max:Math.round(m*0.60), color:'var(--z2)' },
-    { name:'Aeróbico',    min:Math.round(m*0.60), max:Math.round(m*0.70), color:'var(--z3)' },
-    { name:'Umbral',      min:Math.round(m*0.70), max:Math.round(m*0.80), color:'var(--z4)' },
-    { name:'VO₂ Máx',    min:Math.round(m*0.80), max:m+1,              color:'var(--z5)' },
+    { name: t('zone_rest'),      min:0,              max:Math.round(m*0.50), color:'var(--z1)' },
+    { name: t('zone_fatburn'),   min:Math.round(m*0.50), max:Math.round(m*0.60), color:'var(--z2)' },
+    { name: t('zone_aerobic'),   min:Math.round(m*0.60), max:Math.round(m*0.70), color:'var(--z3)' },
+    { name: t('zone_threshold'), min:Math.round(m*0.70), max:Math.round(m*0.80), color:'var(--z4)' },
+    { name: t('zone_vo2max'),    min:Math.round(m*0.80), max:m+1,              color:'var(--z5)' },
   ];
+}
+// Internal zone lookup uses fixed keys for zoneTimes tracking
+const ZONE_KEYS = ['z1','z2','z3','z4','z5'];
+function getZoneIndex(hr) {
+  const m = S.maxHR;
+  const thresholds = [m*0.50, m*0.60, m*0.70, m*0.80];
+  for(let i = 0; i < thresholds.length; i++) { if(hr < thresholds[i]) return i; }
+  return 4;
 }
 function getZone(hr) {
   const zones = getZones();
-  return zones.find(z => hr >= z.min && hr < z.max) || zones[zones.length-1];
+  const idx = getZoneIndex(hr);
+  return zones[idx];
 }
 
 // ── HRV calcs ──
@@ -387,11 +856,11 @@ function calcEPOC(hr, dtMinutes) {
 
 // ── Training Effect from EPOC ──
 function getTrainingEffect(epoc) {
-  if(epoc < 10) return { value: 1, label: 'Recuperación', color: 'var(--z1)' };
-  if(epoc < 30) return { value: 2, label: 'Mantenimiento', color: 'var(--z2)' };
-  if(epoc < 60) return { value: 3, label: 'Mejora', color: 'var(--z3)' };
-  if(epoc < 100) return { value: 4, label: 'Alta mejora', color: 'var(--z4)' };
-  return { value: 5, label: 'Sobrecarga', color: 'var(--z5)' };
+  if(epoc < 10) return { value: 1, label: t('te_recovery'), color: 'var(--z1)' };
+  if(epoc < 30) return { value: 2, label: t('te_maintenance'), color: 'var(--z2)' };
+  if(epoc < 60) return { value: 3, label: t('te_improvement'), color: 'var(--z3)' };
+  if(epoc < 100) return { value: 4, label: t('te_high_improvement'), color: 'var(--z4)' };
+  return { value: 5, label: t('te_overload'), color: 'var(--z5)' };
 }
 
 // ── HR Drift ──
@@ -413,6 +882,29 @@ function calcHRVSlope(trend) {
   const denom = n * sxx - sx * sx;
   if(denom === 0) return 0;
   return Math.round(((n * sxy - sx * sy) / denom) * 60 * 10) / 10; // ms per minute
+}
+
+// ── VO2max Estimation (Uth et al. 2004) ──
+function calcVO2max() {
+  if(S.restHR <= 0) return 0;
+  return Math.round(15.3 * (S.maxHR / S.restHR) * 10) / 10;
+}
+
+// ── Recovery Score ──
+async function calcRecoveryScore() {
+  if(!premiumState) return null;
+  try {
+    const sessions = await loadAllSessions();
+    if(!sessions || sessions.length === 0) return null;
+    const last5 = sessions.slice(-5);
+    const avgRmssd = last5.reduce((sum, s) => sum + (s.rmssdAvg || 0), 0) / last5.length;
+    // TRIMP from last 7 days
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const recent = sessions.filter(s => s.date >= sevenDaysAgo);
+    const trimpLast7 = recent.reduce((sum, s) => sum + (s.trimp || 0), 0);
+    const score = Math.max(0, Math.min(100, Math.round(50 + (avgRmssd - 30) * 1.5 - (trimpLast7 / 20))));
+    return score;
+  } catch(e) { return null; }
 }
 
 // ── Formatting ──
@@ -440,7 +932,7 @@ document.addEventListener('visibilitychange', () => {
 
 // ── IndexedDB for session persistence ──
 const DB_NAME = 'hrsummit';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 let db = null;
 
 function openDB() {
@@ -450,6 +942,9 @@ function openDB() {
       const d = e.target.result;
       if(!d.objectStoreNames.contains('session')) {
         d.createObjectStore('session', { keyPath: 'id' });
+      }
+      if(!d.objectStoreNames.contains('sessions')) {
+        d.createObjectStore('sessions', { keyPath: 'id' });
       }
     };
     req.onsuccess = e => { db = e.target.result; resolve(db); };
@@ -472,6 +967,7 @@ function saveSession() {
     hrSumFirstHalf: S.hrSumFirstHalf, hrCountFirstHalf: S.hrCountFirstHalf,
     hrSumSecondHalf: S.hrSumSecondHalf, hrCountSecondHalf: S.hrCountSecondHalf,
     rmssdTrend: S.rmssdTrend,
+    sessionNotes: S.sessionNotes,
   });
 }
 
@@ -491,8 +987,42 @@ function clearSession() {
   tx.objectStore('session').delete('active');
 }
 
+// ── Session History (IndexedDB 'sessions' store) ──
+function saveSessionToHistory(summary) {
+  if(!db) return;
+  try {
+    const tx = db.transaction('sessions', 'readwrite');
+    tx.objectStore('sessions').put(summary);
+  } catch(e) { console.warn('Failed to save session history', e); }
+}
+
+function loadAllSessions() {
+  if(!db) return Promise.resolve([]);
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction('sessions', 'readonly');
+      const req = tx.objectStore('sessions').getAll();
+      req.onsuccess = () => {
+        const results = req.result || [];
+        results.sort((a,b) => (b.id || 0) - (a.id || 0));
+        resolve(results);
+      };
+      req.onerror = () => resolve([]);
+    } catch(e) { resolve([]); }
+  });
+}
+
 // Save session periodically (every 10 seconds)
 setInterval(() => { if(S.recording) saveSession(); }, 10000);
+
+// Cached history and recovery for render
+let cachedHistory = [];
+let cachedRecovery = null;
+
+async function refreshHistoryCache() {
+  cachedHistory = await loadAllSessions();
+  cachedRecovery = await calcRecoveryScore();
+}
 
 // ── BLE ──
 const HR_SERVICE = '0000180d-0000-1000-8000-00805f9b34fb';
@@ -538,7 +1068,7 @@ async function bleConnectNative() {
 
 // ── Web Bluetooth (fallback for browser) ──
 async function bleConnectWeb() {
-  if(!navigator.bluetooth) { S.errorMsg='Web Bluetooth no disponible. Usa Chrome en Android o instala la app nativa.'; S.status='error'; render(); return; }
+  if(!navigator.bluetooth) { S.errorMsg=t('error_web_ble'); S.status='error'; render(); return; }
   try {
     S.status='scanning'; S.errorMsg=null; render();
     const device = await navigator.bluetooth.requestDevice({
@@ -610,6 +1140,9 @@ async function onDisconnected() {
 }
 
 function addDataPoint(hr, rr) {
+  // Check free tier session limit
+  if(!premiumState && S.sessionLimitReached) return;
+
   const t = Date.now();
   const dtMin = S.lastSampleTime ? (t - S.lastSampleTime) / 60000 : 0;
   S.hr = hr;
@@ -641,9 +1174,10 @@ function addDataPoint(hr, rr) {
     rr.forEach(r => { S.rrTsData.push({t, hr:r}); }); if(S.rrTsData.length > 120) S.rrTsData = S.rrTsData.slice(-120);
   }
 
-  // Zone time
-  const zone = getZone(hr);
-  S.zoneTimes[zone.name] = (S.zoneTimes[zone.name]||0) + 1;
+  // Zone time (use index-based key for language independence)
+  const zIdx = getZoneIndex(hr);
+  const zKey = ZONE_KEYS[zIdx];
+  S.zoneTimes[zKey] = (S.zoneTimes[zKey]||0) + 1;
 
   // Time-domain HRV
   S.rmssd = Math.round(calcRMSSD(S.rrAll));
@@ -693,6 +1227,12 @@ function addDataPoint(hr, rr) {
     S.lastTrendTime = elapsedSec;
   }
 
+  // Check free tier session time limit
+  if(!premiumState && S.elapsed >= FREE_SESSION_LIMIT && !S.sessionLimitReached) {
+    S.sessionLimitReached = true;
+    sessionLimitShown = true;
+  }
+
   S.lastSampleTime = t;
   render();
 }
@@ -711,9 +1251,18 @@ function startRecording() {
   S.lfPower = 0; S.hfPower = 0; S.lfHfRatio = 0; S.respiratoryRate = 0;
   S.rmssdTrend = []; S.hrvSlope = 0; S.lastTrendTime = 0;
   S.lastFreqCalcTime = 0; S._lastDFA = 0;
+  S.sessionNotes = '';
+  S.sessionLimitReached = false;
+  sessionLimitShown = false;
+  sessionLimitDismissed = false;
   // Timer: calculate elapsed from startTime (survives screen-off)
   window._timer = setInterval(() => {
     S.elapsed = Math.floor((Date.now() - S.startTime) / 1000);
+    // Check session limit for free tier
+    if(!premiumState && S.elapsed >= FREE_SESSION_LIMIT && !S.sessionLimitReached) {
+      S.sessionLimitReached = true;
+      sessionLimitShown = true;
+    }
     render();
   }, 1000);
   requestWakeLock();
@@ -726,6 +1275,29 @@ function startRecording() {
 
 async function stopRecording() {
   S.recording = false; clearInterval(window._timer);
+
+  // Save session summary to history
+  if(S.tsData.length > 0) {
+    const total = Object.values(S.zoneTimes).reduce((a,b) => a+b, 0);
+    const zonesPct = {};
+    ZONE_KEYS.forEach(k => { zonesPct[k] = total > 0 ? Math.round(((S.zoneTimes[k]||0)/total)*100) : 0; });
+    const summary = {
+      id: S.startTime || Date.now(),
+      date: S.startTime || Date.now(),
+      duration: S.elapsed,
+      avgHR: S.hrCount ? Math.round(S.hrSum / S.hrCount) : 0,
+      maxHR: S.hrMax === 0 ? 0 : S.hrMax,
+      minHR: S.hrMin === 999 ? 0 : S.hrMin,
+      trimp: Math.round(S.trimp * 10) / 10,
+      rmssdAvg: S.rmssd,
+      zonesPct: zonesPct,
+      notes: S.sessionNotes || '',
+    };
+    saveSessionToHistory(summary);
+    // Refresh cache
+    setTimeout(() => { refreshHistoryCache(); }, 200);
+  }
+
   try {
     if(isCapacitor && BleClient && S.deviceId) {
       await BleClient.stopNotifications(S.deviceId, HR_SERVICE, HR_MEASUREMENT);
@@ -747,6 +1319,7 @@ async function stopRecording() {
 window.stopRecording = stopRecording;
 
 function exportCSV() {
+  if(!premiumState) { window.upgradePremium(); return; }
   if(S.tsData.length === 0) return;
   let csv = 'timestamp,datetime,hr_bpm,zone,rmssd,trimp_cumulative\n';
   let cumTrimp = 0;
@@ -874,6 +1447,43 @@ function renderChart(containerId, data, cs, h, showZones, lineColor, yLabel) {
   svgEl.onpointerleave = () => { cs.dragging = false; cs.cursor = null; renderChart(containerId, data, cs, h, showZones, lineColor, yLabel); };
 }
 
+// ── Premium overlay helper ──
+function wrapPremium(content) {
+  if(premiumState) return content;
+  return `<div class="premium-overlay">
+    <div class="premium-blur">${content}</div>
+    <div class="premium-lock">
+      <div class="premium-lock-icon">&#128274;</div>
+      <div class="premium-lock-text">${t('premium_badge')}</div>
+      <button class="premium-lock-btn" onclick="window.upgradePremium()">${t('premium_unlock')}</button>
+    </div>
+  </div>`;
+}
+
+function proBadge() {
+  if(premiumState) return '';
+  return `<span class="premium-badge">${t('premium_badge')}</span>`;
+}
+
+// ── Recovery Score circle SVG ──
+function recoveryCircle(score) {
+  const pct = score != null ? score / 100 : 0;
+  const color = score == null ? 'var(--fg3)' : score > 70 ? 'var(--z2)' : score > 40 ? 'var(--z3)' : 'var(--z4)';
+  const r = 42;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - pct);
+  return `<div class="recovery-circle">
+    <svg viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="#222" stroke-width="5"/>
+      <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="5"
+        stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+        stroke-linecap="round" transform="rotate(-90 50 50)"/>
+    </svg>
+    <div class="recovery-score-val" style="color:${color}">${score != null ? score : '???'}</div>
+    <div class="recovery-score-label">${t('recovery_title')}</div>
+  </div>`;
+}
+
 // ── Render ──
 function render() {
   const app = document.getElementById('app');
@@ -881,6 +1491,7 @@ function render() {
   const zones = getZones();
   const total = Object.values(S.zoneTimes).reduce((a,b) => a+b, 0);
   const te = getTrainingEffect(S.epoc);
+  S.premium = premiumState;
 
   let html = `
   <div class="header">
@@ -890,21 +1501,36 @@ function render() {
     </div>
     <div class="status-row">
       <div class="status-dot" style="background:${S.status==='connected'?'#75e6a0':S.status==='scanning'||S.status==='connecting'?'#ffd166':'#333'};${S.status==='connected'?'box-shadow:0 0 6px #75e6a0':''}${S.status==='scanning'?';animation:blink 1s infinite':''}"></div>
-      <span class="status-text">${S.status==='connected'?'Conectado':S.status==='scanning'?'Buscando...':S.status==='connecting'?'Conectando...':'Off'}</span>
+      <span class="status-text">${S.status==='connected'?t('status_connected'):S.status==='scanning'?t('status_scanning'):S.status==='connecting'?t('status_connecting'):t('status_off')}</span>
       ${S.wakeLock?'<span class="wakelock-badge">WL</span>':''}
     </div>
   </div>`;
 
   // ── NOT CONNECTED ──
   if(S.status !== 'connected') {
+    // Recovery score on disconnected screen
+    let recoveryHtml = '';
+    if(premiumState) {
+      recoveryHtml = recoveryCircle(cachedRecovery);
+    } else {
+      recoveryHtml = `<div class="premium-overlay" style="display:inline-block">
+        <div class="premium-blur">${recoveryCircle(42)}</div>
+        <div class="premium-lock" style="border-radius:50%">
+          <div class="premium-lock-icon">&#128274;</div>
+          <button class="premium-lock-btn" onclick="window.upgradePremium()" style="font-size:10px;padding:6px 14px">${t('premium_unlock')}</button>
+        </div>
+      </div>`;
+    }
+
     html += `<div class="centered">
-      <div class="centered-heart">♥</div>
-      <div class="centered-title">HRsummit</div>
-      <div class="centered-sub">Monitor cardíaco BLE para montaña<br>Garmin HRM-600 · Alta montaña</div>
-      <div class="centered-spec">Heart Rate Service: 0x180D<br>HR Measurement: 0x2A37<br>FC Máx: ${S.maxHR} bpm · FC Reposo: ${S.restHR} bpm</div>
+      <div class="centered-heart">&#9829;</div>
+      <div class="centered-title">${t('disc_title')}</div>
+      <div class="centered-sub">${t('disc_sub')}</div>
+      ${recoveryHtml}
+      <div class="centered-spec">${t('disc_spec_hr_service')}<br>${t('disc_spec_hr_char')}<br>${t('disc_spec_maxhr')}: ${S.maxHR} bpm · ${t('disc_spec_resthr')}: ${S.restHR} bpm</div>
       ${S.errorMsg?`<div class="error-box">${S.errorMsg}</div>`:''}
       <button class="btn-connect" onclick="bleConnect()" ${S.status==='scanning'||S.status==='connecting'?'disabled':''}>
-        ${S.status==='scanning'?'Buscando...':S.status==='connecting'?'Conectando...':'Conectar HRM-600'}
+        ${S.status==='scanning'?t('btn_scanning'):S.status==='connecting'?t('btn_connecting'):t('btn_connect')}
       </button>
     </div>`;
     app.innerHTML = html;
@@ -913,75 +1539,78 @@ function render() {
 
   // ── CONNECTED ──
   html += `<div class="tabs">
-    <button class="tab ${S.tab==='live'?'active':''}" onclick="S.tab='live';render()">En vivo</button>
-    <button class="tab ${S.tab==='zonas'?'active':''}" onclick="S.tab='zonas';render()">Zonas</button>
-    <button class="tab ${S.tab==='rend'?'active':''}" onclick="S.tab='rend';render()">Rend.</button>
-    <button class="tab ${S.tab==='hrv'?'active':''}" onclick="S.tab='hrv';render()">HRV</button>
-    <button class="tab ${S.tab==='config'?'active':''}" onclick="S.tab='config';render()">Config</button>
+    <button class="tab ${S.tab==='live'?'active':''}" onclick="S.tab='live';render()">${t('tab_live')}</button>
+    <button class="tab ${S.tab==='zonas'?'active':''}" onclick="S.tab='zonas';render()">${t('tab_zones')}</button>
+    <button class="tab ${S.tab==='history'?'active':''}" onclick="S.tab='history';render()">${t('tab_history')}</button>
+    <button class="tab ${S.tab==='rend'?'active':''}" onclick="S.tab='rend';render()">${t('tab_rend')}${proBadge()}</button>
+    <button class="tab ${S.tab==='hrv'?'active':''}" onclick="S.tab='hrv';render()">${t('tab_hrv')}${proBadge()}</button>
+    <button class="tab ${S.tab==='config'?'active':''}" onclick="S.tab='config';render()">${t('tab_config')}</button>
   </div>`;
 
   // ══════ LIVE ══════
   if(S.tab === 'live') {
     html += `
     <div class="hr-card">
-      <div class="hr-heart" style="animation-duration:${S.hr>0?60/S.hr:1}s">♥</div>
+      <div class="hr-heart" style="animation-duration:${S.hr>0?60/S.hr:1}s">&#9829;</div>
       <div>
-        <span class="hr-value">${S.hr}</span><span class="hr-unit">bpm</span>
+        <span class="hr-value">${S.hr}</span><span class="hr-unit">${t('unit_bpm')}</span>
         <div style="margin-top:2px"><span class="zone-badge" style="border-color:${zone.color};color:${zone.color}">${zone.name}</span></div>
       </div>
       <div class="hr-right">
-        <div style="font-size:9px;color:var(--fg3)">TRIMP <span style="font-weight:700;font-size:14px;color:var(--fg)">${Math.round(S.trimp)}</span></div>
+        <div style="font-size:9px;color:var(--fg3)">${t('live_trimp')} <span style="font-weight:700;font-size:14px;color:var(--fg)">${Math.round(S.trimp)}</span></div>
         <div style="font-size:10px;color:var(--fg3);margin-top:3px">${fmt(S.elapsed)}</div>
       </div>
     </div>
 
     <div class="stats-row stats-4">
-      <div class="stat"><div class="stat-label">MÍN</div><div class="stat-value">${S.hrMin===999?'--':S.hrMin}</div></div>
-      <div class="stat"><div class="stat-label">PROM</div><div class="stat-value">${S.hrCount?Math.round(S.hrSum/S.hrCount):'--'}</div></div>
-      <div class="stat"><div class="stat-label">MÁX</div><div class="stat-value">${S.hrMax||'--'}</div></div>
-      <div class="stat"><div class="stat-label">HRV</div><div class="stat-value">${S.rmssd}</div><div class="stat-unit">ms</div></div>
+      <div class="stat"><div class="stat-label">${t('live_min')}</div><div class="stat-value">${S.hrMin===999?'--':S.hrMin}</div></div>
+      <div class="stat"><div class="stat-label">${t('live_avg')}</div><div class="stat-value">${S.hrCount?Math.round(S.hrSum/S.hrCount):'--'}</div></div>
+      <div class="stat"><div class="stat-label">${t('live_max')}</div><div class="stat-value">${S.hrMax||'--'}</div></div>
+      <div class="stat"><div class="stat-label">${t('live_hrv')}</div><div class="stat-value">${S.rmssd}</div><div class="stat-unit">${t('unit_ms')}</div></div>
     </div>
 
     <div class="stats-row stats-3">
-      <div class="stat"><div class="stat-label">DFA α1</div><div class="stat-value" style="color:${S.dfaAlpha1===null?'var(--fg3)':S.dfaAlpha1>0.75?'var(--z2)':S.dfaAlpha1>0.5?'var(--z3)':'var(--z4)'}">${S.dfaAlpha1!==null?S.dfaAlpha1.toFixed(2):'--'}</div></div>
-      <div class="stat"><div class="stat-label">ESTRÉS</div><div class="stat-value">${S.stressIndex}</div></div>
-      <div class="stat"><div class="stat-label">RESP</div><div class="stat-value">${S.respiratoryRate||'--'}</div><div class="stat-unit">rpm</div></div>
+      <div class="stat"><div class="stat-label">${t('live_dfa')}${proBadge()}</div><div class="stat-value" style="color:${premiumState?(S.dfaAlpha1===null?'var(--fg3)':S.dfaAlpha1>0.75?'var(--z2)':S.dfaAlpha1>0.5?'var(--z3)':'var(--z4)'):'var(--fg3)'}">${premiumState?(S.dfaAlpha1!==null?S.dfaAlpha1.toFixed(2):'--'):'--'}</div></div>
+      <div class="stat"><div class="stat-label">${t('live_stress')}${proBadge()}</div><div class="stat-value">${premiumState?S.stressIndex:'--'}</div></div>
+      <div class="stat"><div class="stat-label">${t('live_resp')}${proBadge()}</div><div class="stat-value">${premiumState?(S.respiratoryRate||'--'):'--'}</div><div class="stat-unit">${t('live_resp_unit')}</div></div>
     </div>
 
     <div class="card">
-      <div class="chart-label">Serie de tiempo — Frecuencia cardíaca</div>
+      <div class="chart-label">${t('live_chart_title')}</div>
       <div class="chart-controls">
         <div class="chart-zoom">
           <button class="chart-btn" onclick="chartState.window=Math.max(30,Math.round(chartState.window/2));render()">+</button>
-          <button class="chart-btn" onclick="chartState.window=Math.min(600,chartState.window*2);render()">−</button>
+          <button class="chart-btn" onclick="chartState.window=Math.min(600,chartState.window*2);render()">&#8722;</button>
           <span class="chart-window">${chartState.window}s</span>
         </div>
-        ${chartState.panOffset<2?`<span class="live-dot">● EN VIVO</span>`:`<button class="live-btn" onclick="chartState.panOffset=0;render()">● LIVE</button>`}
+        ${chartState.panOffset<2?`<span class="live-dot">&#9679; ${t('live_chart_live')}</span>`:`<button class="live-btn" onclick="chartState.panOffset=0;render()">&#9679; LIVE</button>`}
       </div>
       <div id="chart-hr" style="position:relative"></div>
     </div>
 
     <div class="card">
-      <div class="chart-label">Tiempo en zonas</div>
-      <div class="zone-bar">${zones.map(z => { const p = total>0?((S.zoneTimes[z.name]||0)/total)*100:0; return p>0?`<div style="width:${p}%;background:${z.color};transition:width .5s"></div>`:'' }).join('')}</div>
-      <div class="zone-labels">${zones.map(z => { const p = total>0?Math.round(((S.zoneTimes[z.name]||0)/total)*100):0; return `<div style="text-align:center"><div class="zone-label-name" style="color:${z.color}">${z.name.split(' ')[0]}</div><div class="zone-label-pct" style="color:${z.color}">${p}%</div></div>` }).join('')}</div>
-    </div>`;
+      <div class="chart-label">${t('live_zone_time')}</div>
+      <div class="zone-bar">${zones.map((z,i) => { const p = total>0?((S.zoneTimes[ZONE_KEYS[i]]||0)/total)*100:0; return p>0?`<div style="width:${p}%;background:${z.color};transition:width .5s"></div>`:'' }).join('')}</div>
+      <div class="zone-labels">${zones.map((z,i) => { const p = total>0?Math.round(((S.zoneTimes[ZONE_KEYS[i]]||0)/total)*100):0; return `<div style="text-align:center"><div class="zone-label-name" style="color:${z.color}">${z.name.split(' ')[0]}</div><div class="zone-label-pct" style="color:${z.color}">${p}%</div></div>` }).join('')}</div>
+    </div>
+
+    <textarea class="session-notes-input" rows="2" placeholder="${t('live_notes_placeholder')}" oninput="S.sessionNotes=this.value">${S.sessionNotes||''}</textarea>`;
   }
 
   // ══════ ZONAS ══════
   if(S.tab === 'zonas') {
-    zones.forEach(z => {
-      const t = S.zoneTimes[z.name] || 0;
-      const p = total > 0 ? (t/total)*100 : 0;
+    zones.forEach((z, i) => {
+      const tt = S.zoneTimes[ZONE_KEYS[i]] || 0;
+      const p = total > 0 ? (tt/total)*100 : 0;
       html += `<div class="zone-row" style="border-left-color:${z.color}">
         <div style="flex:1">
           <div style="display:flex;justify-content:space-between;margin-bottom:5px">
             <span class="zone-row-name" style="color:${z.color}">${z.name}</span>
-            <span class="zone-row-range">${z.min}–${z.max===S.maxHR+1?S.maxHR:z.max} bpm</span>
+            <span class="zone-row-range">${z.min}&#8211;${z.max===S.maxHR+1?S.maxHR:z.max} ${t('unit_bpm')}</span>
           </div>
           <div class="zone-row-bar"><div class="zone-row-fill" style="width:${p}%;background:${z.color}"></div></div>
           <div class="zone-row-footer">
-            <span class="zone-row-text">${fmt(t)}</span>
+            <span class="zone-row-text">${fmt(tt)}</span>
             <span class="zone-row-text">${Math.round(p)}%</span>
           </div>
         </div>
@@ -989,138 +1618,222 @@ function render() {
     });
   }
 
+  // ══════ HISTORY ══════
+  if(S.tab === 'history') {
+    html += `<div class="card"><div class="config-label">${t('history_title')}</div></div>`;
+    const sessions = premiumState ? cachedHistory : cachedHistory.slice(0, 1);
+    if(sessions.length === 0) {
+      html += `<div class="card" style="text-align:center;color:var(--fg3);font-size:10px;padding:30px">${t('history_no_sessions')}</div>`;
+    } else {
+      sessions.forEach(s => {
+        const d = new Date(s.date);
+        const dateStr = d.toLocaleDateString(currentLang === 'es' ? 'es-ES' : 'en-US', { month:'short', day:'numeric', year:'numeric' });
+        const timeStr = d.toLocaleTimeString(currentLang === 'es' ? 'es-ES' : 'en-US', { hour:'2-digit', minute:'2-digit' });
+        html += `<div class="history-card">
+          <div class="history-card-header">
+            <span class="history-card-date">${dateStr} ${timeStr}</span>
+            <span class="history-card-duration">${fmt(s.duration || 0)}</span>
+          </div>
+          <div class="history-card-stats">
+            <div class="history-card-stat"><div class="history-card-stat-label">${t('history_avg')}</div><div class="history-card-stat-value">${s.avgHR || '--'}</div></div>
+            <div class="history-card-stat"><div class="history-card-stat-label">${t('history_max')}</div><div class="history-card-stat-value">${s.maxHR || '--'}</div></div>
+            <div class="history-card-stat"><div class="history-card-stat-label">${t('history_trimp')}</div><div class="history-card-stat-value">${s.trimp != null ? Math.round(s.trimp) : '--'}</div></div>
+            <div class="history-card-stat"><div class="history-card-stat-label">HRV</div><div class="history-card-stat-value">${s.rmssdAvg || '--'}</div></div>
+          </div>
+          ${s.notes ? `<div style="font-size:9px;color:var(--fg3);margin-top:6px;border-top:1px solid var(--border);padding-top:6px">${s.notes}</div>` : ''}
+        </div>`;
+      });
+    }
+    if(!premiumState && cachedHistory.length > 1) {
+      html += `<div class="card" style="text-align:center;padding:16px">
+        <div style="font-size:10px;color:var(--fg3);margin-bottom:8px">${t('history_free_limit')}</div>
+        <button class="premium-lock-btn" onclick="window.upgradePremium()">${t('premium_unlock')}</button>
+      </div>`;
+    }
+  }
+
   // ══════ RENDIMIENTO ══════
   if(S.tab === 'rend') {
+    let rendContent = '';
+
     // TRIMP
-    html += `<div class="metric-card">
+    rendContent += `<div class="metric-card">
       <div class="metric-header">
-        <span class="metric-name">TRIMP — Carga de entrenamiento</span>
+        <span class="metric-name">${t('rend_trimp_name')}</span>
       </div>
       <div class="metric-main">
         <span class="metric-big">${Math.round(S.trimp)}</span>
-        <span class="metric-unit">pts</span>
+        <span class="metric-unit">${t('unit_pts')}</span>
       </div>
       <div class="metric-bar"><div class="metric-bar-fill" style="width:${Math.min(100,S.trimp/2)}%;background:${S.trimp<50?'var(--z2)':S.trimp<100?'var(--z3)':S.trimp<200?'var(--z4)':'var(--z5)'}"></div></div>
-      <div class="metric-desc">${S.trimp<50?'Carga baja — sesión de recuperación':S.trimp<100?'Carga moderada — buen estímulo aeróbico':S.trimp<200?'Carga alta — sesión exigente':'Carga muy alta — asegura buena recuperación'}</div>
+      <div class="metric-desc">${S.trimp<50?t('rend_trimp_low'):S.trimp<100?t('rend_trimp_mod'):S.trimp<200?t('rend_trimp_high'):t('rend_trimp_vhigh')}</div>
     </div>`;
 
     // Training Effect / EPOC
-    html += `<div class="metric-card">
+    rendContent += `<div class="metric-card">
       <div class="metric-header">
-        <span class="metric-name">Efecto de entrenamiento (EPOC)</span>
+        <span class="metric-name">${t('rend_te_name')}</span>
         <span class="metric-indicator" style="background:${te.color}22;color:${te.color};border:1px solid ${te.color}44">${te.label}</span>
       </div>
       <div class="metric-main">
         <span class="metric-big">${te.value}</span>
-        <span class="metric-unit">/ 5 — EPOC: ${Math.round(S.epoc)} ml/kg</span>
+        <span class="metric-unit">${t('rend_te_unit')} ${Math.round(S.epoc)} ${t('rend_te_unit2')}</span>
       </div>
       <div class="metric-bar"><div class="metric-bar-fill" style="width:${te.value*20}%;background:${te.color}"></div></div>
     </div>`;
 
     // DFA alpha1
     const dfaColor = S.dfaAlpha1===null?'var(--fg3)':S.dfaAlpha1>0.75?'var(--z2)':S.dfaAlpha1>0.5?'var(--z3)':'var(--z4)';
-    const dfaStatus = S.dfaAlpha1===null?'Esperando datos RR...':S.dfaAlpha1>1.0?'Baja intensidad — sub-aeróbico':S.dfaAlpha1>0.75?'Bajo umbral aeróbico — zona óptima para base':S.dfaAlpha1>0.5?'En umbral — zona de transición aeróbica/anaeróbica':'Supra-umbral — intensidad alta, limita tiempo en esta zona';
-    html += `<div class="metric-card">
+    const dfaStatus = S.dfaAlpha1===null?t('rend_dfa_waiting'):S.dfaAlpha1>1.0?t('rend_dfa_sub'):S.dfaAlpha1>0.75?t('rend_dfa_under'):S.dfaAlpha1>0.5?t('rend_dfa_thresh'):t('rend_dfa_supra');
+    rendContent += `<div class="metric-card">
       <div class="metric-header">
-        <span class="metric-name">DFA α1 — Umbral aeróbico</span>
-        <span class="metric-indicator" style="background:${dfaColor}22;color:${dfaColor};border:1px solid ${dfaColor}44">${S.dfaAlpha1===null?'--':S.dfaAlpha1>0.75?'SUB-UMBRAL':S.dfaAlpha1>0.5?'UMBRAL':'SUPRA'}</span>
+        <span class="metric-name">${t('rend_dfa_name')}</span>
+        <span class="metric-indicator" style="background:${dfaColor}22;color:${dfaColor};border:1px solid ${dfaColor}44">${S.dfaAlpha1===null?'--':S.dfaAlpha1>0.75?t('rend_dfa_sub_label'):S.dfaAlpha1>0.5?t('rend_dfa_thresh_label'):t('rend_dfa_supra_label')}</span>
       </div>
       <div class="metric-main">
         <span class="metric-big" style="color:${dfaColor}">${S.dfaAlpha1!==null?S.dfaAlpha1.toFixed(2):'--'}</span>
       </div>
       <div class="metric-desc">${dfaStatus}</div>
-      <div class="note" style="margin-top:6px;margin-bottom:0"><strong>Altitud:</strong> Tu umbral aeróbico baja con la altura. DFA α1 detecta este cambio automáticamente — si α1 baja a la misma FC que en nivel del mar, tu umbral se ha reducido.</div>
+      <div class="note" style="margin-top:6px;margin-bottom:0">${t('rend_dfa_alt_note')}</div>
     </div>`;
 
     // Cardiac Drift
     const driftColor = Math.abs(S.hrDrift)<3?'var(--z2)':Math.abs(S.hrDrift)<5?'var(--z3)':Math.abs(S.hrDrift)<10?'var(--z4)':'var(--z5)';
-    html += `<div class="metric-card">
+    rendContent += `<div class="metric-card">
       <div class="metric-header">
-        <span class="metric-name">Deriva cardíaca</span>
+        <span class="metric-name">${t('rend_drift_name')}</span>
       </div>
       <div class="metric-main">
         <span class="metric-big" style="color:${driftColor}">${S.hrDrift>0?'+':''}${S.hrDrift}</span>
         <span class="metric-unit">%</span>
       </div>
-      <div class="metric-desc">${S.elapsed<600?'Necesita >10 min para ser significativo':Math.abs(S.hrDrift)<3?'Excelente eficiencia aeróbica':Math.abs(S.hrDrift)<5?'Normal — dentro de rango aceptable':Math.abs(S.hrDrift)<10?'Desacoplamiento moderado — acercándose al límite':'Desacoplamiento significativo — considera reducir intensidad'}</div>
+      <div class="metric-desc">${S.elapsed<600?t('rend_drift_wait'):Math.abs(S.hrDrift)<3?t('rend_drift_excellent'):Math.abs(S.hrDrift)<5?t('rend_drift_normal'):Math.abs(S.hrDrift)<10?t('rend_drift_mod'):t('rend_drift_sig')}</div>
     </div>`;
 
     // Stress Index
-    html += `<div class="metric-card">
+    rendContent += `<div class="metric-card">
       <div class="metric-header">
-        <span class="metric-name">Índice de estrés (Baevsky)</span>
+        <span class="metric-name">${t('rend_si_name')}</span>
       </div>
       <div class="metric-main">
         <span class="metric-big">${S.stressIndex}</span>
       </div>
       <div class="metric-bar"><div class="metric-bar-fill" style="width:${Math.min(100,S.stressIndex/10)}%;background:${S.stressIndex<150?'var(--z2)':S.stressIndex<300?'var(--z3)':S.stressIndex<500?'var(--z4)':'var(--z5)'}"></div></div>
-      <div class="metric-desc">${S.stressIndex<150?'Estrés bajo — buena regulación autonómica':S.stressIndex<300?'Estrés moderado':S.stressIndex<500?'Estrés alto — alta activación simpática':'Estrés muy alto — posible fatiga acumulada o mala aclimatación'}</div>
+      <div class="metric-desc">${S.stressIndex<150?t('rend_si_low'):S.stressIndex<300?t('rend_si_mod'):S.stressIndex<500?t('rend_si_high'):t('rend_si_vhigh')}</div>
     </div>`;
 
     // Respiratory Rate
-    html += `<div class="metric-card">
+    rendContent += `<div class="metric-card">
       <div class="metric-header">
-        <span class="metric-name">Frecuencia respiratoria estimada</span>
+        <span class="metric-name">${t('rend_resp_name')}</span>
       </div>
       <div class="metric-main">
         <span class="metric-big">${S.respiratoryRate||'--'}</span>
-        <span class="metric-unit">resp/min</span>
+        <span class="metric-unit">${t('rend_resp_unit')}</span>
       </div>
-      <div class="metric-desc">${!S.respiratoryRate?'Esperando datos...':S.respiratoryRate<=16?'Rango normal a nivel del mar':S.respiratoryRate<=20?'Hiperventilación leve — esperable a 3000-4000m':S.respiratoryRate<=25?'Hiperventilación significativa — esperable >4500m':'Hiperventilación marcada — monitorea síntomas de mal de altura'}</div>
+      <div class="metric-desc">${!S.respiratoryRate?t('rend_resp_wait'):S.respiratoryRate<=16?t('rend_resp_normal'):S.respiratoryRate<=20?t('rend_resp_mild'):S.respiratoryRate<=25?t('rend_resp_sig'):t('rend_resp_marked')}</div>
     </div>`;
 
     // HRV Trend
     const slopeColor = S.hrvSlope > 0 ? 'var(--z2)' : S.hrvSlope > -0.5 ? 'var(--z3)' : 'var(--z4)';
-    html += `<div class="metric-card">
+    rendContent += `<div class="metric-card">
       <div class="metric-header">
-        <span class="metric-name">Tendencia HRV (RMSSD)</span>
+        <span class="metric-name">${t('rend_hrv_trend_name')}</span>
       </div>
       <div class="metric-main">
         <span class="metric-big" style="color:${slopeColor}">${S.hrvSlope>0?'+':''}${S.hrvSlope.toFixed(1)}</span>
-        <span class="metric-unit">ms/min</span>
+        <span class="metric-unit">${t('rend_hrv_trend_unit')}</span>
       </div>
-      <div class="metric-desc">${S.rmssdTrend.length<3?'Necesita más datos (>3 min)...':S.hrvSlope>0?'HRV subiendo — buena señal, calentamiento o recuperando':S.hrvSlope>-0.5?'HRV estable — función autonómica controlada':'HRV bajando — fatiga progresiva, considera descanso'}</div>
+      <div class="metric-desc">${S.rmssdTrend.length<3?t('rend_hrv_trend_wait'):S.hrvSlope>0?t('rend_hrv_trend_up'):S.hrvSlope>-0.5?t('rend_hrv_trend_stable'):t('rend_hrv_trend_down')}</div>
     </div>`;
+
+    // VO2max Estimation (Premium)
+    const vo2 = calcVO2max();
+    const vo2Color = vo2 < 35 ? 'var(--z4)' : vo2 < 45 ? 'var(--z3)' : vo2 < 55 ? 'var(--z2)' : 'var(--z5)';
+    const vo2Label = vo2 < 35 ? t('rend_vo2max_poor') : vo2 < 45 ? t('rend_vo2max_avg') : vo2 < 55 ? t('rend_vo2max_good') : vo2 < 65 ? t('rend_vo2max_excellent') : t('rend_vo2max_elite');
+    rendContent += `<div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-name">${t('rend_vo2max_name')}${proBadge()}</span>
+        <span class="metric-indicator" style="background:${vo2Color}22;color:${vo2Color};border:1px solid ${vo2Color}44">${vo2Label}</span>
+      </div>
+      <div class="metric-main">
+        <span class="metric-big" style="color:${vo2Color}">${vo2.toFixed(1)}</span>
+        <span class="metric-unit">${t('rend_vo2max_unit')}</span>
+      </div>
+      <div class="metric-desc">${t('rend_vo2max_desc')}</div>
+    </div>`;
+
+    // Wrap in premium overlay for free users
+    html += wrapPremium(rendContent);
   }
 
   // ══════ HRV ══════
   if(S.tab === 'hrv') {
-    html += `
+    let hrvContent = `
     <div class="hrv-big">
-      <div class="hrv-label">RMSSD (HRV)</div>
-      <div class="hrv-value">${S.rmssd}<span class="hrv-unit"> ms</span></div>
-      <div class="hrv-status">${S.rmssd>50?'Buena recuperación':S.rmssd>30?'Recuperación moderada':'Recuperación baja — prioriza descanso'}</div>
+      <div class="hrv-label">${t('hrv_rmssd_title')}</div>
+      <div class="hrv-value">${S.rmssd}<span class="hrv-unit"> ${t('unit_ms')}</span></div>
+      <div class="hrv-status">${S.rmssd>50?t('hrv_good'):S.rmssd>30?t('hrv_moderate'):t('hrv_low')}</div>
     </div>
 
     <div class="stats-row stats-3">
-      <div class="stat"><div class="stat-label">RMSSD</div><div class="stat-value">${S.rmssd}</div><div class="stat-unit">ms</div></div>
-      <div class="stat"><div class="stat-label">SDNN</div><div class="stat-value">${S.sdnn}</div><div class="stat-unit">ms</div></div>
-      <div class="stat"><div class="stat-label">pNN50</div><div class="stat-value">${S.pnn50}</div><div class="stat-unit">%</div></div>
+      <div class="stat"><div class="stat-label">${t('hrv_rmssd')}</div><div class="stat-value">${S.rmssd}</div><div class="stat-unit">${t('unit_ms')}</div></div>
+      <div class="stat"><div class="stat-label">${t('hrv_sdnn')}</div><div class="stat-value">${S.sdnn}</div><div class="stat-unit">${t('unit_ms')}</div></div>
+      <div class="stat"><div class="stat-label">${t('hrv_pnn50')}</div><div class="stat-value">${S.pnn50}</div><div class="stat-unit">%</div></div>
     </div>
 
     <div class="stats-row stats-2">
-      <div class="stat"><div class="stat-label">LF/HF</div><div class="stat-value" style="color:${S.lfHfRatio<1.5?'var(--z2)':S.lfHfRatio<3?'var(--z3)':'var(--z4)'}">${S.lfHfRatio||'--'}</div></div>
-      <div class="stat"><div class="stat-label">DFA α1</div><div class="stat-value" style="color:${S.dfaAlpha1===null?'var(--fg3)':S.dfaAlpha1>0.75?'var(--z2)':S.dfaAlpha1>0.5?'var(--z3)':'var(--z4)'}">${S.dfaAlpha1!==null?S.dfaAlpha1.toFixed(2):'--'}</div></div>
+      <div class="stat"><div class="stat-label">${t('hrv_lfhf')}</div><div class="stat-value" style="color:${S.lfHfRatio<1.5?'var(--z2)':S.lfHfRatio<3?'var(--z3)':'var(--z4)'}">${S.lfHfRatio||'--'}</div></div>
+      <div class="stat"><div class="stat-label">${t('hrv_dfa')}</div><div class="stat-value" style="color:${S.dfaAlpha1===null?'var(--fg3)':S.dfaAlpha1>0.75?'var(--z2)':S.dfaAlpha1>0.5?'var(--z3)':'var(--z4)'}">${S.dfaAlpha1!==null?S.dfaAlpha1.toFixed(2):'--'}</div></div>
     </div>
 
     <div class="card">
-      <div class="chart-label">Intervalos R-R</div>
+      <div class="chart-label">${t('hrv_rr_title')}</div>
       <div class="chart-controls">
         <div class="chart-zoom">
           <button class="chart-btn" onclick="rrChartState.window=Math.max(15,Math.round(rrChartState.window/2));render()">+</button>
-          <button class="chart-btn" onclick="rrChartState.window=Math.min(300,rrChartState.window*2);render()">−</button>
+          <button class="chart-btn" onclick="rrChartState.window=Math.min(300,rrChartState.window*2);render()">&#8722;</button>
           <span class="chart-window">${rrChartState.window}s</span>
         </div>
-        ${rrChartState.panOffset<2?`<span class="live-dot">● EN VIVO</span>`:`<button class="live-btn" onclick="rrChartState.panOffset=0;render()">● LIVE</button>`}
+        ${rrChartState.panOffset<2?`<span class="live-dot">&#9679; ${t('live_chart_live')}</span>`:`<button class="live-btn" onclick="rrChartState.panOffset=0;render()">&#9679; LIVE</button>`}
       </div>
       <div id="chart-rr" style="position:relative"></div>
       <div style="display:flex;justify-content:space-between;margin-top:3px">
-        <span style="font-size:9px;color:var(--fg3)">Último: ${S.rrAll.length>0?S.rrAll[S.rrAll.length-1]:'--'} ms</span>
-        <span style="font-size:9px;color:var(--fg3)">Muestras: ${S.rrAll.length}</span>
+        <span style="font-size:9px;color:var(--fg3)">${t('hrv_rr_last')}: ${S.rrAll.length>0?S.rrAll[S.rrAll.length-1]:'--'} ${t('unit_ms')}</span>
+        <span style="font-size:9px;color:var(--fg3)">${t('hrv_rr_samples')}: ${S.rrAll.length}</span>
       </div>
     </div>
 
-    <div class="note"><strong>HRV y altitud:</strong> La variabilidad cardíaca disminuye con la altitud. Un RMSSD bajo en altura no necesariamente indica sobreentrenamiento — compara siempre con tu baseline al mismo nivel altitudinal. LF/HF &gt; 3.0 en reposo puede indicar aclimatación incompleta.</div>`;
+    <div class="note">${t('hrv_alt_note')}</div>`;
+
+    // Free users: show RMSSD only (basic), wrap LF/HF+DFA+RR chart in premium overlay
+    if(!premiumState) {
+      // Show RMSSD big card (free)
+      html += `
+      <div class="hrv-big">
+        <div class="hrv-label">${t('hrv_rmssd_title')}</div>
+        <div class="hrv-value">${S.rmssd}<span class="hrv-unit"> ${t('unit_ms')}</span></div>
+        <div class="hrv-status">${S.rmssd>50?t('hrv_good'):S.rmssd>30?t('hrv_moderate'):t('hrv_low')}</div>
+      </div>`;
+      // Premium overlay for the rest
+      html += wrapPremium(`
+      <div class="stats-row stats-3">
+        <div class="stat"><div class="stat-label">${t('hrv_rmssd')}</div><div class="stat-value">${S.rmssd}</div><div class="stat-unit">${t('unit_ms')}</div></div>
+        <div class="stat"><div class="stat-label">${t('hrv_sdnn')}</div><div class="stat-value">${S.sdnn}</div><div class="stat-unit">${t('unit_ms')}</div></div>
+        <div class="stat"><div class="stat-label">${t('hrv_pnn50')}</div><div class="stat-value">${S.pnn50}</div><div class="stat-unit">%</div></div>
+      </div>
+      <div class="stats-row stats-2">
+        <div class="stat"><div class="stat-label">${t('hrv_lfhf')}</div><div class="stat-value">${S.lfHfRatio||'--'}</div></div>
+        <div class="stat"><div class="stat-label">${t('hrv_dfa')}</div><div class="stat-value">${S.dfaAlpha1!==null?S.dfaAlpha1.toFixed(2):'--'}</div></div>
+      </div>
+      <div class="card">
+        <div class="chart-label">${t('hrv_rr_title')}</div>
+        <div id="chart-rr" style="position:relative;height:160px"></div>
+      </div>
+      <div class="note">${t('hrv_alt_note')}</div>`);
+    } else {
+      html += hrvContent;
+    }
   }
 
   // ══════ CONFIG ══════
@@ -1128,88 +1841,92 @@ function render() {
     html += `
     <div class="card">
       <div class="config-group">
-        <div class="config-label">Frecuencia cardíaca máxima</div>
+        <div class="config-label">${t('config_lang')}</div>
+        <div class="config-input-row">
+          <select class="lang-select" onchange="setLang(this.value)">
+            <option value="en" ${currentLang==='en'?'selected':''}>English</option>
+            <option value="es" ${currentLang==='es'?'selected':''}>Espa&#241;ol</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">${t('config_premium')}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;color:${premiumState?'var(--z5)':'var(--fg3)'};font-weight:600">${premiumState?t('config_premium_active'):t('config_premium_free')}</span>
+          <button style="background:var(--z5);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:10px;font-weight:600;font-family:inherit;cursor:pointer" onclick="window.upgradePremium()">${premiumState?t('config_premium_toggle'):t('config_premium_upgrade')}</button>
+        </div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">${t('config_maxhr')}</div>
         <div class="config-input-row">
           <input type="number" class="config-input" value="${S.maxHR}" min="140" max="230"
             onchange="S.maxHR=parseInt(this.value)||190;render()">
-          <span style="font-size:12px;color:var(--fg3)">bpm</span>
+          <span style="font-size:12px;color:var(--fg3)">${t('unit_bpm')}</span>
         </div>
-        <div class="config-hint">Las zonas y métricas se calculan como porcentaje de tu FC máxima.</div>
+        <div class="config-hint">${t('config_maxhr_hint')}</div>
       </div>
 
       <div class="config-group">
-        <div class="config-label">Frecuencia cardíaca en reposo</div>
+        <div class="config-label">${t('config_resthr')}</div>
         <div class="config-input-row">
           <input type="number" class="config-input" value="${S.restHR}" min="30" max="100"
             onchange="S.restHR=parseInt(this.value)||55;render()">
-          <span style="font-size:12px;color:var(--fg3)">bpm</span>
+          <span style="font-size:12px;color:var(--fg3)">${t('unit_bpm')}</span>
         </div>
-        <div class="config-hint">Necesaria para calcular TRIMP y EPOC. Mide al despertar, acostado.</div>
+        <div class="config-hint">${t('config_resthr_hint')}</div>
       </div>
 
       <div class="config-group">
-        <div class="config-label">Sexo (para cálculo TRIMP)</div>
+        <div class="config-label">${t('config_sex')}</div>
         <div class="config-input-row">
           <select class="config-select" onchange="S.sex=this.value;render()">
-            <option value="m" ${S.sex==='m'?'selected':''}>Masculino</option>
-            <option value="f" ${S.sex==='f'?'selected':''}>Femenino</option>
+            <option value="m" ${S.sex==='m'?'selected':''}>${t('config_male')}</option>
+            <option value="f" ${S.sex==='f'?'selected':''}>${t('config_female')}</option>
           </select>
         </div>
-        <div class="config-hint">Afecta el factor exponencial de TRIMP (Banister).</div>
+        <div class="config-hint">${t('config_sex_hint')}</div>
       </div>
 
       <div class="config-group">
-        <div class="config-label">Zonas calculadas</div>
+        <div class="config-label">${t('config_zones_calc')}</div>
         <div class="config-zones">
           ${zones.map(z => `<div class="config-zone-row">
             <div class="config-zone-dot" style="background:${z.color}"></div>
             <div class="config-zone-name">${z.name}</div>
-            <div class="config-zone-range">${z.min} – ${z.max===S.maxHR+1?S.maxHR:z.max} bpm</div>
+            <div class="config-zone-range">${z.min} &#8211; ${z.max===S.maxHR+1?S.maxHR:z.max} ${t('unit_bpm')}</div>
           </div>`).join('')}
         </div>
       </div>
 
       <div class="config-group">
-        <div class="config-label">Fórmula de zonas</div>
+        <div class="config-label">${t('config_zones_formula')}</div>
+        <div class="config-hint" style="white-space:pre-line">${t('config_zones_formula_detail')}</div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">${t('config_perf_metrics')}</div>
+        <div class="config-hint">${t('config_perf_detail')}</div>
+      </div>
+
+      <div class="config-group">
+        <div class="config-label">${t('config_device')}</div>
         <div class="config-hint">
-          Z1 Reposo: &lt; 50% FCmáx<br>
-          Z2 Quema grasa: 50–60% FCmáx<br>
-          Z3 Aeróbico: 60–70% FCmáx<br>
-          Z4 Umbral: 70–80% FCmáx<br>
-          Z5 VO₂ Máx: 80–100% FCmáx
+          ${t('config_device_detail_band')}<br>
+          ${t('config_device_detail_protocol')}<br>
+          ${t('config_device_detail_service')}
         </div>
       </div>
 
       <div class="config-group">
-        <div class="config-label">Métricas de rendimiento</div>
+        <div class="config-label">${t('config_info')}</div>
         <div class="config-hint">
-          <strong>TRIMP:</strong> Carga acumulada (Banister). Pondera intensidad exponencialmente.<br>
-          <strong>DFA α1:</strong> Análisis fractal de intervalos RR. Detecta umbral aeróbico en tiempo real.<br>
-          <strong>Baevsky SI:</strong> Índice de estrés cardiovascular. Refleja activación simpática.<br>
-          <strong>EPOC:</strong> Exceso de consumo de O₂ post-ejercicio. Estima demanda de recuperación.<br>
-          <strong>LF/HF:</strong> Balance autonómico. Elevado en altitud = aclimatación incompleta.<br>
-          <strong>Freq. Resp:</strong> Estimada desde pico HF del espectro RR.<br>
-          <strong>Deriva cardíaca:</strong> Comparación FC 1ª vs 2ª mitad de la sesión.
-        </div>
-      </div>
-
-      <div class="config-group">
-        <div class="config-label">Dispositivo</div>
-        <div class="config-hint">
-          Banda: Garmin HRM-600<br>
-          Protocolo: Bluetooth Low Energy<br>
-          Service: 0x180D · Char: 0x2A37
-        </div>
-      </div>
-
-      <div class="config-group">
-        <div class="config-label">Información</div>
-        <div class="config-hint">
-          HRsummit v2.0<br>
-          ${isCapacitor?'App Nativa (Capacitor)':'PWA (Web Bluetooth)'} · IndexedDB<br>
-          BLE: ${isCapacitor?'Nativo':'Web Bluetooth API'}<br>
-          Datos procesados localmente<br>
-          Sin envío de datos a servidores externos
+          ${t('config_info_version')}<br>
+          ${isCapacitor?t('config_info_native'):t('config_info_pwa')} · ${t('config_info_indexeddb')}<br>
+          BLE: ${isCapacitor?t('config_info_ble_native'):t('config_info_ble_web')}<br>
+          ${t('config_info_local')}<br>
+          ${t('config_info_no_cloud')}
         </div>
       </div>
     </div>`;
@@ -1218,8 +1935,20 @@ function render() {
   // ── Action buttons ──
   if(S.status === 'connected') {
     html += `<div class="action-row">
-      <button class="btn-export" onclick="exportCSV()">↓ CSV</button>
-      <button class="btn-stop" onclick="stopRecording()">■ Detener</button>
+      <button class="btn-export" onclick="exportCSV()">&#8595; ${t('btn_csv')}${premiumState?'':' '+proBadge()}</button>
+      <button class="btn-stop" onclick="stopRecording()">&#9632; ${t('btn_stop')}</button>
+    </div>`;
+  }
+
+  // ── 30-min paywall banner ──
+  if(sessionLimitShown && !sessionLimitDismissed && !premiumState) {
+    html += `<div class="paywall-banner">
+      <div class="paywall-banner-inner">
+        <div class="paywall-banner-title">${t('paywall_title')}</div>
+        <div class="paywall-banner-desc">${t('paywall_desc')}</div>
+        <button class="paywall-banner-btn" onclick="window.upgradePremium()">${t('paywall_btn')}</button><br>
+        <button class="paywall-banner-dismiss" onclick="sessionLimitDismissed=true;render()">${t('paywall_dismiss')}</button>
+      </div>
     </div>`;
   }
 
@@ -1228,7 +1957,7 @@ function render() {
   // Render charts after DOM update
   requestAnimationFrame(() => {
     if(S.tab === 'live' && S.tsData.length > 1) renderChart('chart-hr', S.tsData, chartState, 200, true, null, 'BPM');
-    if(S.tab === 'hrv' && S.rrTsData.length > 1) renderChart('chart-rr', S.rrTsData, rrChartState, 160, false, '#fff', 'ms');
+    if(S.tab === 'hrv' && premiumState && S.rrTsData.length > 1) renderChart('chart-rr', S.rrTsData, rrChartState, 160, false, '#fff', 'ms');
   });
 }
 
@@ -1258,6 +1987,13 @@ window.render = render;
 window.exportCSV = exportCSV;
 window.chartState = chartState;
 window.rrChartState = rrChartState;
+window.sessionLimitDismissed = false;
+
+// Make sessionLimitDismissed accessible from onclick
+Object.defineProperty(window, 'sessionLimitDismissed', {
+  get() { return sessionLimitDismissed; },
+  set(v) { sessionLimitDismissed = v; }
+});
 
 // ── Service Worker (only in browser, not needed in Capacitor) ──
 if(!isCapacitor && 'serviceWorker' in navigator) {
@@ -1265,29 +2001,31 @@ if(!isCapacitor && 'serviceWorker' in navigator) {
 }
 
 // ── Init ──
-openDB().then(() => {
+openDB().then(async () => {
+  // Load history cache
+  await refreshHistoryCache();
   // Check for interrupted session
-  loadSession().then(session => {
-    if(session && session.tsData && session.tsData.length > 0) {
-      // Restore session data
-      S.tsData = session.tsData;
-      S.rrAll = session.rrAll || [];
-      S.rrTsData = session.rrTsData || [];
-      S.hrMax = session.hrMax; S.hrMin = session.hrMin;
-      S.hrSum = session.hrSum; S.hrCount = session.hrCount;
-      S.startTime = session.startTime;
-      S.zoneTimes = session.zoneTimes || {};
-      S.trimp = session.trimp || 0;
-      S.epoc = session.epoc || 0;
-      S.hrSumFirstHalf = session.hrSumFirstHalf || 0;
-      S.hrCountFirstHalf = session.hrCountFirstHalf || 0;
-      S.hrSumSecondHalf = session.hrSumSecondHalf || 0;
-      S.hrCountSecondHalf = session.hrCountSecondHalf || 0;
-      S.rmssdTrend = session.rmssdTrend || [];
-      S.elapsed = Math.floor((Date.now() - S.startTime) / 1000);
-    }
-    render();
-  });
+  const session = await loadSession();
+  if(session && session.tsData && session.tsData.length > 0) {
+    // Restore session data
+    S.tsData = session.tsData;
+    S.rrAll = session.rrAll || [];
+    S.rrTsData = session.rrTsData || [];
+    S.hrMax = session.hrMax; S.hrMin = session.hrMin;
+    S.hrSum = session.hrSum; S.hrCount = session.hrCount;
+    S.startTime = session.startTime;
+    S.zoneTimes = session.zoneTimes || {};
+    S.trimp = session.trimp || 0;
+    S.epoc = session.epoc || 0;
+    S.hrSumFirstHalf = session.hrSumFirstHalf || 0;
+    S.hrCountFirstHalf = session.hrCountFirstHalf || 0;
+    S.hrSumSecondHalf = session.hrSumSecondHalf || 0;
+    S.hrCountSecondHalf = session.hrCountSecondHalf || 0;
+    S.rmssdTrend = session.rmssdTrend || [];
+    S.sessionNotes = session.sessionNotes || '';
+    S.elapsed = Math.floor((Date.now() - S.startTime) / 1000);
+  }
+  render();
 }).catch(() => { render(); });
 </script>
 </body>
